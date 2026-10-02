@@ -7,7 +7,8 @@ export default function imageLoader({ src, width, quality }: { src: string; widt
   if (src.startsWith("https://cdn.shopify.com/") || src.includes("/cdn/shop/")) {
     const url = new URL(src);
     url.searchParams.set("width", String(width));
-    if (quality) url.searchParams.set("quality", String(quality));
+    // Shopify's default JPEG quality is high; q65 roughly halves bytes with no visible loss on car photos.
+    url.searchParams.set("quality", String(quality ?? 65));
     return url.toString();
   }
   const sep = src.includes("?") ? "&" : "?";

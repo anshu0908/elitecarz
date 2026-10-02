@@ -31,6 +31,9 @@ const nextConfig: NextConfig = {
   images: {
     loader: "custom",
     loaderFile: "./lib/image-loader.ts",
+    // Fewer srcset candidates = smaller HTML; these cover phones (1x–3x) up to desktop heroes.
+    deviceSizes: [400, 640, 828, 1080, 1440, 1920],
+    imageSizes: [96, 176, 256],
   },
   async headers() {
     return [
