@@ -110,9 +110,16 @@ export const getPublicCars = cache(async (): Promise<PublicCar[]> => {
   return rows.map(toPublicCar);
 });
 
-export const getPublicCarBySlug = cache(async (slug: string): Promise<PublicCarDetail | null> => {
+export const getPublicCarBySlug = cache(async (slug: string): Promise<PublicCarDetail | null> => loadDetail({ ...publicCarWhere, slug }));
+
+/** Admin draft preview: same public-safe shape, any status. Callers must check permissions. */
+export async function getCarDetailForPreview(id: string): Promise<PublicCarDetail | null> {
+  return loadDetail({ id, deletedAt: null });
+}
+
+async function loadDetail(where: Prisma.CarWhereInput): Promise<PublicCarDetail | null> {
   const row = await db.car.findFirst({
-    where: { ...publicCarWhere, slug },
+    where,
     select: {
       ...publicCarSelect,
       documents: { select: { type: true, verified: true, fileUrl: true, isPublic: true } },
@@ -137,4 +144,4 @@ export const getPublicCarBySlug = cache(async (slug: string): Promise<PublicCarD
       : null,
     priceDrop: drop && drop.newPrice < drop.oldPrice ? { oldPrice: drop.oldPrice, newPrice: drop.newPrice, changedAt: drop.changedAt.toISOString() } : null,
   };
-});
+}

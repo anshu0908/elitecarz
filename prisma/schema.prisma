@@ -285,7 +285,7 @@ model Booking {
   lead          Lead?     @relation(fields: [leadId], references: [id], onDelete: SetNull)
   carId         String?
   car           Car?      @relation(fields: [carId], references: [id])
-  kind          String // test_drive | reservation
+  kind          String // test_drive | reservation | sell_inspection
   slot          DateTime?
   tokenAmount   Int?
   paymentStatus String?
