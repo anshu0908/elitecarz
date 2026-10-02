@@ -15,12 +15,14 @@
     "setup": "prisma generate && prisma migrate deploy && npm run db:seed",
     "test": "vitest run",
     "test:e2e": "playwright test",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "db:remote:migrate": "node scripts/migrate-remote.mjs"
   },
   "dependencies": {
     "@libsql/client": "^0.18.0",
     "@prisma/adapter-libsql": "^7.10.0",
     "@prisma/client": "^7.10.0",
+    "@vercel/blob": "^2.8.0",
     "bcryptjs": "^3.0.3",
     "jose": "^6.2.12",
     "lucide-react": "^1.50.0",

@@ -3,8 +3,10 @@ import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import sharp, { type OutputInfo } from "sharp";
+import { head, put } from "@vercel/blob";
 
-// Local disk storage for the demo. Swap for Supabase Storage / Cloudinary in production (BRIEF §15.1).
+// Storage: Vercel Blob when BLOB_READ_WRITE_TOKEN is set (deployed), otherwise the local ./uploads folder.
+// Serverless hosts have no persistent disk, so Blob is required on Vercel.
 export const UPLOAD_ROOT = path.join(process.cwd(), "uploads");
 export const UPLOAD_FOLDERS = ["cars", "sell"] as const;
 export type UploadFolder = (typeof UPLOAD_FOLDERS)[number];
@@ -30,8 +32,33 @@ export async function saveImage(file: File, folder: UploadFolder): Promise<{ url
     throw new UploadError(`${file.name}: couldn't read this image`);
   }
   const name = `${randomUUID()}.webp`;
+  if (blobEnabled()) {
+    const blob = await put(`${folder}/${name}`, out.data, { access: "public", contentType: "image/webp", addRandomSuffix: false });
+    // Car photos are served straight from the Blob CDN. Seller photos are lead data: the app proxies them
+    // to signed-in staff only, so their Blob URL (an unguessable UUID) is never sent to browsers.
+    return { url: folder === "cars" ? blob.url : `/uploads/${folder}/${name}`, width: out.info.width, height: out.info.height };
+  }
   const dir = path.join(UPLOAD_ROOT, folder);
   await mkdir(dir, { recursive: true });
   await writeFile(path.join(dir, name), out.data);
   return { url: `/uploads/${folder}/${name}`, width: out.info.width, height: out.info.height };
+}
+
+export function blobEnabled() {
+  return !!process.env.BLOB_READ_WRITE_TOKEN;
+}
+
+/** Reads a stored upload by folder + file name, from Blob or local disk. */
+export async function readUpload(folder: UploadFolder, file: string): Promise<Uint8Array<ArrayBuffer> | null> {
+  try {
+    if (blobEnabled()) {
+      const meta = await head(`${folder}/${file}`);
+      const res = await fetch(meta.url);
+      return res.ok ? new Uint8Array(await res.arrayBuffer()) : null;
+    }
+    const { readFile } = await import("node:fs/promises");
+    return new Uint8Array(await readFile(path.join(UPLOAD_ROOT, folder, file)));
+  } catch {
+    return null;
+  }
 }

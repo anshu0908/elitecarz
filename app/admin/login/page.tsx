@@ -15,11 +15,13 @@ export default async function LoginPage({ searchParams }: PageProps<"/admin/logi
           <p className="mt-1 text-sm text-muted">Inventory, leads and settings.</p>
           <LoginForm next={typeof next === "string" ? next : ""} />
         </div>
+        {process.env.SHOW_DEMO_LOGINS !== "false" && (
         <div className="mt-6 rounded-xl border border-ink-line p-4 text-xs text-white/70">
           <p className="font-semibold text-white">Demo accounts <span className="demo-tag">DEMO</span></p>
           <p className="mt-1">owner@ · manager@ · sales@ · viewer@elitecarz.demo</p>
-          <p>Password: EliteCarz@2026</p>
+          <p>Password: {process.env.DEMO_LOGIN_HINT || "EliteCarz@2026"}</p>
         </div>
+        )}
       </div>
     </div>
   );

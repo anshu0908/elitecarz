@@ -1,7 +1,5 @@
-import { readFile } from "node:fs/promises";
-import path from "node:path";
 import { NextResponse } from "next/server";
-import { UPLOAD_ROOT } from "@/lib/uploads";
+import { readUpload, type UploadFolder } from "@/lib/uploads";
 import { getCurrentUser } from "@/lib/auth";
 
 /**
@@ -15,16 +13,13 @@ export async function GET(_req: Request, ctx: RouteContext<"/uploads/[...path]">
     return new NextResponse("Not found", { status: 404 });
   }
   if (folder === "sell" && !(await getCurrentUser())) return new NextResponse("Not found", { status: 404 });
-  try {
-    const data = await readFile(path.join(UPLOAD_ROOT, folder, file));
-    return new NextResponse(new Uint8Array(data), {
-      headers: {
-        "Content-Type": "image/webp",
-        "Cache-Control": folder === "cars" ? "public, max-age=31536000, immutable" : "private, no-store",
-        "X-Content-Type-Options": "nosniff",
-      },
-    });
-  } catch {
-    return new NextResponse("Not found", { status: 404 });
-  }
+  const data = await readUpload(folder as UploadFolder, file);
+  if (!data) return new NextResponse("Not found", { status: 404 });
+  return new NextResponse(data, {
+    headers: {
+      "Content-Type": "image/webp",
+      "Cache-Control": folder === "cars" ? "public, max-age=31536000, immutable" : "private, no-store",
+      "X-Content-Type-Options": "nosniff",
+    },
+  });
 }

@@ -10,12 +10,13 @@ import { INSPECTION_TEMPLATE } from "../lib/inspection";
 import { DEFAULT_SETTINGS } from "../lib/settings-defaults";
 import { carSlug, maskRegNumber } from "../lib/slug";
 
-const db = new PrismaClient({ adapter: new PrismaLibSql({ url: process.env.DATABASE_URL ?? "file:./prisma/dev.db" }) });
+const db = new PrismaClient({ adapter: new PrismaLibSql({ url: process.env.DATABASE_URL ?? "file:./prisma/dev.db", authToken: process.env.DATABASE_AUTH_TOKEN || undefined }) });
 
 type SourceCar = { handle: string; title: string; price: number; createdAt: string; images: string[]; detail: Record<string, string> };
 const source: { cars: SourceCar[] } = JSON.parse(readFileSync(new URL("../data/source-cars.json", import.meta.url), "utf8"));
 
-export const DEMO_PASSWORD = "EliteCarz@2026";
+// Set SEED_ADMIN_PASSWORD (12+ chars) when seeding a deployed database — the default is public in the repo.
+export const DEMO_PASSWORD = process.env.SEED_ADMIN_PASSWORD || "EliteCarz@2026";
 
 const year = (s: string | undefined) => (s ? Number(s.match(/\d{4}/)?.[0]) || undefined : undefined);
 const km = (s: string | undefined) => (s ? Number(s.replace(/\D/g, "")) || undefined : undefined);
@@ -355,7 +356,7 @@ async function main() {
   await seedContent();
   await seedRedirects(carIds);
   const count = await db.car.count();
-  console.log(`Seeded ${count} cars. Admin logins: owner|manager|sales|viewer@elitecarz.demo / ${DEMO_PASSWORD}`);
+  console.log(`Seeded ${count} cars. Admin logins: owner|manager|sales|viewer@elitecarz.demo / ${process.env.SEED_ADMIN_PASSWORD ? "(your SEED_ADMIN_PASSWORD)" : DEMO_PASSWORD}`);
 }
 
 main()

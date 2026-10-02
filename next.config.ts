@@ -7,7 +7,7 @@ const csp = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://www.googletagmanager.com https://challenges.cloudflare.com`,
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob: https://cdn.shopify.com https://elitecarz.in https://www.googletagmanager.com",
+  "img-src 'self' data: blob: https://*.public.blob.vercel-storage.com https://cdn.shopify.com https://elitecarz.in https://www.googletagmanager.com",
   "font-src 'self'",
   "connect-src 'self' https://www.google-analytics.com https://*.google-analytics.com https://challenges.cloudflare.com",
   "frame-src https://www.google.com https://challenges.cloudflare.com https://www.youtube-nocookie.com",
