@@ -24,7 +24,7 @@ function dismiss(id: number) {
 }
 
 export function Toaster() {
-  const [list, setList] = useState<ToastItem[]>([]);
+  const [list, setList] = useState<ToastItem[]>(() => items);
   useEffect(() => {
     listeners.add(setList);
     return () => {

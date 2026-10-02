@@ -15,6 +15,10 @@ function toLocalInput(iso: string | null) {
   return new Date(d.getTime() - off * 60000).toISOString().slice(0, 16);
 }
 
+function hoursFromNow(hours: number) {
+  return new Date(Date.now() + hours * 3_600_000).toISOString();
+}
+
 export function LeadControls({
   lead,
   users,
@@ -49,7 +53,7 @@ export function LeadControls({
       if (res.ok) router.refresh();
     });
 
-  const quick = (hours: number) => setFollowup(toLocalInput(new Date(Date.now() + hours * 3_600_000).toISOString()));
+  const quick = (hours: number) => setFollowup(toLocalInput(hoursFromNow(hours)));
 
   return (
     <div className="card sticky top-20 space-y-4 p-5">

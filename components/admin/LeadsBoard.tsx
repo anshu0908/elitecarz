@@ -11,7 +11,7 @@ import { telLink, whatsappLink } from "@/lib/whatsapp";
 
 export type LeadCard = {
   id: string; type: string; status: string; name: string | null; phone: string | null; car: string | null; source: string | null;
-  assignee: string | null; createdAt: string; nextFollowupAt: string | null; notes: number; duplicate: boolean; demo: boolean;
+  assignee: string | null; createdAt: string; nextFollowupAt: string | null; overdue: boolean; notes: number; duplicate: boolean; demo: boolean;
 };
 
 const BOARD_COLUMNS: LeadStatus[] = ["new", "contacted", "visit_scheduled", "negotiating", "won", "lost"];
@@ -137,7 +137,7 @@ export function LeadsBoard({
                     </select>
                   </td>
                   <td className="p-3">{l.assignee ?? <span className="text-muted">—</span>}</td>
-                  <td className="p-3"><FollowUp at={l.nextFollowupAt} /></td>
+                  <td className="p-3"><FollowUp at={l.nextFollowupAt} overdue={l.overdue} /></td>
                   <td className="p-3 text-muted">{ago(l.createdAt)}</td>
                 </tr>
               ))}
@@ -185,7 +185,7 @@ export function LeadsBoard({
                           {l.notes > 0 && <span className="flex items-center gap-0.5"><MessageSquareText className="size-3" aria-hidden />{l.notes}</span>}
                           {l.duplicate && <span className="flex items-center gap-0.5 text-warn" title="Same phone as an earlier lead"><Copy className="size-3" aria-hidden />repeat</span>}
                           {l.demo && <span className="demo-tag">DEMO</span>}
-                          <FollowUp at={l.nextFollowupAt} />
+                          <FollowUp at={l.nextFollowupAt} overdue={l.overdue} />
                         </div>
                         {l.phone && (
                           <div className="mt-2 flex gap-1.5">
@@ -217,9 +217,8 @@ export function LeadsBoard({
   );
 }
 
-function FollowUp({ at }: { at: string | null }) {
+function FollowUp({ at, overdue }: { at: string | null; overdue: boolean }) {
   if (!at) return null;
-  const overdue = new Date(at).getTime() < Date.now();
   return (
     <span className={`inline-flex items-center gap-0.5 text-xs ${overdue ? "font-semibold text-bad" : "text-muted"}`}>
       <AlarmClock className="size-3" aria-hidden /> {overdue ? "Overdue" : formatDate(at, { day: "numeric", month: "short", hour: "numeric" })}

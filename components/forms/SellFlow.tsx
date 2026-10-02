@@ -10,7 +10,6 @@ import { DemoTag } from "@/components/ui/Demo";
 import { FUELS, KM_RANGES, REG_STATES, SELL_BRANDS, yearOptions } from "@/lib/constants";
 import { formatInr } from "@/lib/format";
 import { track } from "@/lib/client/analytics";
-import type { BookingSettings } from "@/lib/settings-defaults";
 
 type Result = { id: string; valuation: { min: number; max: number; notes: string[] } | null };
 
@@ -21,7 +20,7 @@ const STEPS = ["Your car", "Condition", "Photos & contact"] as const;
  * Tata/Mahindra/Toyota, years through the current year, no "less likely we buy" labels,
  * photo upload, and an instant indicative range.
  */
-export function SellFlow({ modelsByMake, booking, whatsapp }: { modelsByMake: Record<string, string[]>; booking: BookingSettings; whatsapp: string }) {
+export function SellFlow({ modelsByMake, whatsapp }: { modelsByMake: Record<string, string[]>; whatsapp: string }) {
   const formRef = useRef<HTMLFormElement>(null);
   const { state, submit, fieldError } = useLeadSubmit<Result>("sell_car");
   const [step, setStep] = useState(0);

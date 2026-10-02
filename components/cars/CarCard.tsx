@@ -46,7 +46,7 @@ export function CarCard({ car, finance, priority = false }: { car: PublicCar; fi
         <div className="absolute right-2 top-2">
           <ShortlistButton carId={car.id} title={car.title} />
         </div>
-        <span className="num absolute bottom-2 left-3 rounded bg-black/60 px-1.5 py-0.5 text-[0.7rem] font-medium text-white">{car.images.length} photos</span>
+        <span className="num absolute bottom-2 left-3 rounded bg-black/60 px-1.5 py-0.5 text-[0.7rem] font-medium text-white">{car.photoCount} photos</span>
       </div>
 
       <div className="flex flex-1 flex-col gap-3 p-4">

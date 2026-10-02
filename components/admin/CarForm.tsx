@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { AlertTriangle, CheckCircle2, ClipboardList, ExternalLink, Eye, MinusCircle, Save, Send, XCircle } from "lucide-react";
 import { saveCarAction } from "@/app/admin/(panel)/cars/actions";
-import { ImageManager, type FormImage } from "@/components/admin/ImageManager";
+import { ImageManager } from "@/components/admin/ImageManager";
 import { TagInput } from "@/components/admin/TagInput";
 import { toast } from "@/components/admin/Toast";
 import { BADGES, BODY_TYPES, CAR_STATUSES, FUELS, REG_STATES, TRANSMISSIONS, type CarStatus } from "@/lib/constants";
@@ -283,7 +283,7 @@ export function CarForm({ carId, initial, master, perms, quick = false, preview 
         )}
 
         <Section id="photos" title={`Photos (${v.images.length})`}>
-          <ImageManager images={v.images} heroIndex={v.heroIndex} error={errors.images} onChange={(images, heroIndex) => { setV((cur) => ({ ...cur, images, heroIndex })); setDirty(true); }} />
+          <ImageManager images={v.images} heroIndex={v.heroIndex} error={errors.images} onChange={(images, heroIndex) => { setV((cur) => ({ ...cur, images, heroIndex })); setDirty(true); setErrors((e) => ({ ...e, images: "" })); }} />
           {!quick && (
             <div className="mt-4 max-w-lg">
               <Field label="Walkaround video URL" hint="YouTube or Google Drive link" error={errors.videoUrl}><input className="field" {...bind("videoUrl")} /></Field>

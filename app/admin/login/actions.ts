@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { audit } from "@/lib/audit";
 import { endSession, startSession, getCurrentUser } from "@/lib/auth";
-import { rateLimit, resetRateLimit } from "@/lib/rate-limit";
+import { peekRateLimit, rateLimit, resetRateLimit } from "@/lib/rate-limit";
 import { verifyTurnstile } from "@/lib/turnstile";
 
 export type LoginState = { error?: string; email?: string };
@@ -20,18 +20,25 @@ export async function login(_prev: LoginState, form: FormData): Promise<LoginSta
   const h = await headers();
   const ip = h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "local";
 
-  // 5 attempts per email per 15 minutes, 20 per IP — then locked out for the window.
-  const byEmail = rateLimit(`login:${email}`, 5, 15 * 60_000);
-  const byIp = rateLimit(`login-ip:${ip}`, 20, 15 * 60_000);
+  // Lockout after 5 failed attempts per email or 20 per IP within 15 minutes. Successful sign-ins don't count.
+  const WINDOW = 15 * 60_000;
+  const byEmail = peekRateLimit(`login:${email}`, 5);
+  const byIp = peekRateLimit(`login-ip:${ip}`, 20);
+  const recordFailure = () => {
+    rateLimit(`login:${email}`, 5, WINDOW);
+    rateLimit(`login-ip:${ip}`, 20, WINDOW);
+  };
   if (!byEmail.ok || !byIp.ok) {
     return { error: `Too many attempts. Try again in ${Math.ceil(Math.max(byEmail.retryAfterS, byIp.retryAfterS) / 60)} minutes.`, email };
   }
   if (!(await verifyTurnstile(form.get("cf-turnstile-response") as string | null, ip))) return { error: "Bot check failed. Please retry.", email };
   if (!email || !password) return { error: "Enter your email and password.", email };
 
+
   const user = await db.user.findUnique({ where: { email } });
   const ok = await bcrypt.compare(password, user?.passwordHash ?? DUMMY_HASH);
   if (!user || !ok || !user.isActive) {
+    recordFailure();
     await audit(user?.id ?? null, "login_failed", "user", user?.id, { email });
     return { error: user && !user.isActive ? "This account has been deactivated." : "Email or password is incorrect.", email };
   }

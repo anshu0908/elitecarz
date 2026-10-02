@@ -7,7 +7,9 @@ import { track } from "@/lib/client/analytics";
 import type { PublicCar } from "@/lib/types";
 
 /** Hero car finder (BRIEF §17.2.2): budget / body type / brand / transmission → inventory with filters. */
-export function CarFinder({ cars }: { cars: PublicCar[] }) {
+type FinderCar = Pick<PublicCar, "id" | "make" | "bodyType" | "transmission" | "priceInr" | "status" | "publishedAt">;
+
+export function CarFinder({ cars }: { cars: FinderCar[] }) {
   const router = useRouter();
   const [budget, setBudget] = useState("");
   const [body, setBody] = useState("");
@@ -29,7 +31,8 @@ export function CarFinder({ cars }: { cars: PublicCar[] }) {
       trans: trans ? [trans] : [],
     };
   }, [budget, body, make, trans]);
-  const count = applyFilters(available, filters).length;
+  // Only budget/body/make/gearbox filters are set here, so the slim shape is enough.
+  const count = applyFilters(available as PublicCar[], filters).length;
 
   return (
     <form

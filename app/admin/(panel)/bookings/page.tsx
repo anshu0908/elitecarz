@@ -9,11 +9,13 @@ export const metadata: Metadata = { title: "Bookings" };
 
 const KIND: Record<string, string> = { test_drive: "Test drive", reservation: "Reservation", sell_inspection: "Sell inspection" };
 
+const yesterday = () => new Date(Date.now() - 86_400_000);
+
 /** Upcoming test drives, reservations and sell inspections grouped by day (BRIEF §16.6 — list view for the demo). */
 export default async function BookingsPage() {
   const user = await requirePageUser();
   const bookings = await db.booking.findMany({
-    where: { lead: leadScope(user), OR: [{ slot: { gte: new Date(Date.now() - 86_400_000) } }, { slot: null }] },
+    where: { lead: leadScope(user), OR: [{ slot: { gte: yesterday() } }, { slot: null }] },
     orderBy: { slot: "asc" },
     include: { lead: { select: { id: true, name: true, phone: true } }, car: { select: { id: true, title: true } } },
   });

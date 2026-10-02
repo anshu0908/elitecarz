@@ -9,7 +9,7 @@ import { EmiCalculator } from "@/components/cars/EmiCalculator";
 import { SellMiniForm } from "@/components/forms/SellMiniForm";
 import { ReviewCard } from "@/components/site/ReviewCard";
 import { FaqList } from "@/components/site/FaqList";
-import { getPublicCars } from "@/lib/cars";
+import { getPublicCarBySlug, getPublicCars } from "@/lib/cars";
 import { getFaqs, getReviews } from "@/lib/content";
 import { getPublicSettings } from "@/lib/settings";
 import { transmissionGroup } from "@/lib/filters";
@@ -27,7 +27,8 @@ export default async function HomePage() {
   const autoSuvs = available.filter((c) => (c.bodyType === "SUV" || c.bodyType === "Compact SUV") && transmissionGroup(c.transmission) === "Automatic");
   const sold = cars.filter((c) => c.status === "sold");
   const hector = cars.find((c) => c.slug.includes("hector")) ?? available[0];
-  const heroImage = hector?.images[1]?.url ?? hector?.heroImage;
+  const hectorDetail = hector ? await getPublicCarBySlug(hector.slug) : null;
+  const heroImage = hectorDetail?.images[1]?.url ?? hector?.heroImage;
   const hectorBreakup = hector ? priceBreakup(hector.priceInr, hector.tcsApplicable) : null;
 
   const bodyCounts = countBy(available, (c) => c.bodyType ?? "Other");
@@ -52,7 +53,7 @@ export default async function HomePage() {
             {available.length} hand-picked pre-owned cars, RC transfer included in the price. Come and see them at our Naraina showroom, open 11 am to 7 pm every day.
           </p>
           <div className="mt-8 max-w-5xl">
-            <CarFinder cars={cars} />
+            <CarFinder cars={cars.map(({ id, make, bodyType, transmission, priceInr, status, publishedAt }) => ({ id, make, bodyType, transmission, priceInr, status, publishedAt }))} />
           </div>
           <p className="mt-4 flex items-center gap-2 text-sm text-white/75">
             <Star className="size-4 fill-amber-400 text-amber-400" aria-hidden />

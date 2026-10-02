@@ -37,6 +37,7 @@ export default async function LeadsPage({ searchParams }: PageProps<"/admin/lead
     db.car.findMany({ where: { deletedAt: null, status: { in: ["published", "reserved", "draft"] } }, select: { id: true, title: true }, orderBy: { title: "asc" } }),
   ]);
 
+  const now = new Date();
   const cards: LeadCard[] = leads.map((l) => ({
     id: l.id,
     type: l.type,
@@ -48,6 +49,7 @@ export default async function LeadsPage({ searchParams }: PageProps<"/admin/lead
     assignee: l.assignedTo?.name ?? null,
     createdAt: l.createdAt.toISOString(),
     nextFollowupAt: l.nextFollowupAt?.toISOString() ?? null,
+    overdue: !!l.nextFollowupAt && l.nextFollowupAt < now && !["won", "lost", "spam"].includes(l.status),
     notes: l._count.notes,
     duplicate: !!parseObject<{ duplicateOf?: string }>(l.payload).duplicateOf,
     demo: !!parseObject<{ demo?: boolean }>(l.payload).demo,
@@ -58,7 +60,7 @@ export default async function LeadsPage({ searchParams }: PageProps<"/admin/lead
       <div className="mb-5 flex flex-wrap items-center gap-3">
         <h1 className="mr-auto text-2xl font-extrabold">Leads</h1>
         {can(user.role, "export") && (
-          <a href="/api/admin/export/leads" className="btn btn-outline btn-sm">
+          <a download href="/api/admin/export/leads" className="btn btn-outline btn-sm">
             <Download className="size-4" aria-hidden /> Export CSV
           </a>
         )}

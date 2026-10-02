@@ -105,10 +105,12 @@ export async function saveCar(user: CurrentUser, id: string | null, data: CarFor
   // Auto "Price drop" badge when a live car gets cheaper and no badge was chosen.
   if (existing && data.priceInr < existing.priceInr && existing.status === "published" && !data.badge) fields.badge = "Price drop";
 
+  // Read outside the transaction: SQLite has one writer, so a non-tx query inside it would wait on itself.
+  const stockNo = existing ? null : await nextStockNo();
   const car = await db.$transaction(async (tx) => {
     const car = existing
       ? await tx.car.update({ where: { id: existing.id }, data: fields })
-      : await tx.car.create({ data: { ...fields, stockNo: await nextStockNo(), createdById: user.id, purchasePriceInr: viewCost ? data.purchasePriceInr ?? null : null, refurbCostInr: viewCost ? data.refurbCostInr ?? null : null } });
+      : await tx.car.create({ data: { ...fields, stockNo, createdById: user.id, purchasePriceInr: viewCost ? data.purchasePriceInr ?? null : null, refurbCostInr: viewCost ? data.refurbCostInr ?? null : null } });
 
     await tx.carImage.deleteMany({ where: { carId: car.id } });
     if (data.images.length) {

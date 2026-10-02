@@ -3,7 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { UserRound } from "lucide-react";
 import { Breadcrumbs } from "@/components/site/Section";
-import { getPublicCars } from "@/lib/cars";
+import { getPublicCarBySlug, getPublicCars } from "@/lib/cars";
 import { getTeam } from "@/lib/content";
 import { getPublicSettings } from "@/lib/settings";
 
@@ -16,7 +16,8 @@ export const metadata: Metadata = {
 export default async function AboutPage() {
   const [team, settings, cars] = await Promise.all([getTeam(), getPublicSettings(), getPublicCars()]);
   const b = settings.business;
-  const showroomShot = cars.find((c) => c.slug.includes("hector"))?.images[1]?.url;
+  const hector = cars.find((c) => c.slug.includes("hector"));
+  const showroomShot = hector ? (await getPublicCarBySlug(hector.slug))?.images[1]?.url : undefined;
 
   return (
     <div className="container-x py-8 md:py-12">

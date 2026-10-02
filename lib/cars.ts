@@ -54,6 +54,9 @@ type PublicCarRow = Prisma.CarGetPayload<{ select: typeof publicCarSelect }>;
 
 export const publicCarWhere = { deletedAt: null, status: { in: PUBLIC_STATUSES } } satisfies Prisma.CarWhereInput;
 
+// demoFields may only name fields that are public; internal ones are just labels admins see.
+const PUBLIC_DEMO_FIELDS = new Set(["warranty", "views", "features", "highlights", "disclosures", "inspection", "priceInr", "status"]);
+
 export function toPublicCar(row: PublicCarRow): PublicCar {
   const hero = row.images.find((i) => i.isHero) ?? row.images[0];
   return {
@@ -92,8 +95,9 @@ export function toPublicCar(row: PublicCarRow): PublicCar {
     featured: row.featured,
     badge: row.badge,
     images: row.images.map(({ url, alt, category }) => ({ url, alt, category })),
+    photoCount: row.images.length,
     heroImage: hero?.url ?? null,
-    demoFields: parseList(row.demoFields),
+    demoFields: parseList(row.demoFields).filter((f) => PUBLIC_DEMO_FIELDS.has(f)),
     views: row.views,
     publishedAt: row.publishedAt?.toISOString() ?? null,
     soldAt: row.soldAt?.toISOString() ?? null,
@@ -107,7 +111,8 @@ export const getPublicCars = cache(async (): Promise<PublicCar[]> => {
     select: publicCarSelect,
     orderBy: [{ publishedAt: "desc" }],
   });
-  return rows.map(toPublicCar);
+  // List views only need the cover photo — drop the gallery to keep page payloads small.
+  return rows.map((r) => ({ ...toPublicCar(r), images: [] }));
 });
 
 export const getPublicCarBySlug = cache(async (slug: string): Promise<PublicCarDetail | null> => loadDetail({ ...publicCarWhere, slug }));

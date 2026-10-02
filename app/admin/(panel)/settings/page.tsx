@@ -17,9 +17,9 @@ export default async function SettingsPage() {
         <h2 className="font-extrabold">Data export & backup</h2>
         <p className="mt-1 text-sm text-muted">Download everything as CSV. In production, the database is also backed up daily.</p>
         <div className="mt-3 flex flex-wrap gap-2">
-          <a href="/api/admin/export/cars" className="btn btn-outline btn-sm">Cars CSV</a>
-          <a href="/api/admin/export/leads" className="btn btn-outline btn-sm">Leads CSV</a>
-          <a href="/api/admin/export/audit" className="btn btn-outline btn-sm">Audit log CSV</a>
+          <a download href="/api/admin/export/cars" className="btn btn-outline btn-sm">Cars CSV</a>
+          <a download href="/api/admin/export/leads" className="btn btn-outline btn-sm">Leads CSV</a>
+          <a download href="/api/admin/export/audit" className="btn btn-outline btn-sm">Audit log CSV</a>
         </div>
       </section>
     </div>

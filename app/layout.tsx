@@ -22,7 +22,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en-IN" className={`${archivo.variable} ${instrument.variable}`}>
+    <html lang="en-IN" data-scroll-behavior="smooth" className={`${archivo.variable} ${instrument.variable}`}>
       <body className="min-h-dvh antialiased">{children}</body>
     </html>
   );

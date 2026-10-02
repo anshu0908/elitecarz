@@ -37,6 +37,7 @@ export type PublicCar = {
   badge: string | null;
   images: { url: string; alt: string | null; category: string | null }[];
   heroImage: string | null;
+  photoCount: number;
   demoFields: string[];
   views: number;
   publishedAt: string | null;

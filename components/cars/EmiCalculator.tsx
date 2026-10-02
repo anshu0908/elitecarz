@@ -54,7 +54,7 @@ export function EmiCalculator({
   const interestShare = result.totalPayment ? result.totalInterest / result.totalPayment : 0;
 
   return (
-    <div className={`grid gap-6 ${compact ? "" : "md:grid-cols-[1.1fr_1fr]"}`}>
+    <div className={`grid grid-cols-[minmax(0,1fr)] gap-6 ${compact ? "" : "md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]"}`}>
       <div className="space-y-5">
         {priceEditable && (
           <Slider

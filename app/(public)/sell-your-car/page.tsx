@@ -50,7 +50,7 @@ export default async function SellPage() {
             ))}
           </ul>
         </div>
-        <SellFlow modelsByMake={modelsByMake} booking={settings.booking} whatsapp={settings.business.whatsapp} />
+        <SellFlow modelsByMake={modelsByMake} whatsapp={settings.business.whatsapp} />
       </div>
       <section className="mx-auto mt-16 max-w-3xl" aria-labelledby="sell-faq">
         <h2 id="sell-faq" className="mb-4 text-2xl font-extrabold">Selling questions</h2>

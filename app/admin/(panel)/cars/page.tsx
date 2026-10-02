@@ -71,7 +71,7 @@ export default async function AdminCarsPage({ searchParams }: PageProps<"/admin/
       <div className="mb-5 flex flex-wrap items-center gap-3">
         <h1 className="mr-auto text-2xl font-extrabold">Cars</h1>
         {can(user.role, "export") && (
-          <a href="/api/admin/export/cars" className="btn btn-outline btn-sm">
+          <a download href="/api/admin/export/cars" className="btn btn-outline btn-sm">
             <Download className="size-4" aria-hidden /> Export CSV
           </a>
         )}
