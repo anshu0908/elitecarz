@@ -1,6 +1,7 @@
 "use client";
 import Image from "next/image";
 import { useRef, useState } from "react";
+import { Dropdown } from "@/components/ui/Dropdown";
 import { ArrowLeft, ArrowRight, Camera, GripVertical, Loader2, Star, Trash2, Upload } from "lucide-react";
 
 export type FormImage = { url: string; alt?: string | null; category?: string | null };
@@ -133,10 +134,15 @@ export function ImageManager({
                 <div className="mt-1.5 flex items-center gap-1">
                   <button type="button" onClick={() => move(i, i - 1)} disabled={i === 0} className="grid size-8 place-items-center rounded-md hover:bg-paper disabled:opacity-30" aria-label={`Move photo ${i + 1} earlier`}><ArrowLeft className="size-4" /></button>
                   <button type="button" onClick={() => move(i, i + 1)} disabled={i === images.length - 1} className="grid size-8 place-items-center rounded-md hover:bg-paper disabled:opacity-30" aria-label={`Move photo ${i + 1} later`}><ArrowRight className="size-4" /></button>
-                  <select aria-label={`Category of photo ${i + 1}`} value={img.category ?? ""} onChange={(e) => emit(images.map((x, j) => (j === i ? { ...x, category: e.target.value || null } : x)))} className="min-w-0 flex-1 rounded-md border border-line bg-card px-1 py-1 text-xs capitalize">
-                    <option value="">Category</option>
-                    {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-                  </select>
+                  <Dropdown
+                    variant="ghost"
+                    className="min-w-0 flex-1"
+                    aria-label={`Category of photo ${i + 1}`}
+                    value={img.category ?? ""}
+                    onChange={(val) => emit(images.map((x, j) => (j === i ? { ...x, category: val || null } : x)))}
+                    placeholder="Category"
+                    options={[{ value: "", label: "No category" }, ...CATEGORIES.map((c) => ({ value: c, label: c[0].toUpperCase() + c.slice(1) }))]}
+                  />
                   <button type="button" onClick={() => emit(images.filter((_, j) => j !== i), i === heroIndex ? images[i === 0 ? 1 : 0]?.url : heroUrl)} className="grid size-8 place-items-center rounded-md text-bad hover:bg-red-soft" aria-label={`Delete photo ${i + 1}`}><Trash2 className="size-4" /></button>
                 </div>
                 <input aria-label={`Alt text for photo ${i + 1}`} placeholder="Describe (alt text)" value={img.alt ?? ""} onChange={(e) => emit(images.map((x, j) => (j === i ? { ...x, alt: e.target.value } : x)))} className="mt-1 w-full rounded-md border border-line px-2 py-1 text-xs" />

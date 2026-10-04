@@ -5,6 +5,7 @@ import { inviteUserAction, resetPasswordAction, updateUserAction } from "@/app/a
 import { FormError, SelectField, TextField } from "@/components/forms/Fields";
 import { Modal } from "@/components/ui/Modal";
 import { toast } from "@/components/admin/Toast";
+import { Dropdown } from "@/components/ui/Dropdown";
 import { ROLE_LABELS, ROLES } from "@/lib/permissions";
 import { formatDate } from "@/lib/format";
 
@@ -37,9 +38,15 @@ export function UsersManager({ users, meId }: { users: U[]; meId: string }) {
               <p className="font-semibold">{u.name} {u.id === meId && <span className="text-xs text-muted">(you)</span>}</p>
               <p className="text-sm text-muted">{u.email} · last sign-in {u.lastLoginAt ? formatDate(u.lastLoginAt, { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }) : "never"}</p>
             </div>
-            <select aria-label={`Role for ${u.name}`} className="field min-h-9 w-auto py-1 text-sm" value={u.role} disabled={u.id === meId} onChange={(e) => act(() => updateUserAction(u.id, { role: e.target.value }), "Role updated")}>
-              {ROLES.map((r) => <option key={r} value={r}>{ROLE_LABELS[r]}</option>)}
-            </select>
+            <Dropdown
+              variant="compact"
+              className="w-[130px]"
+              aria-label={`Role for ${u.name}`}
+              value={u.role}
+              disabled={u.id === meId}
+              onChange={(role) => act(() => updateUserAction(u.id, { role }), "Role updated")}
+              options={ROLES.map((r) => ({ value: r, label: ROLE_LABELS[r] }))}
+            />
             <button type="button" className="btn btn-outline btn-sm" disabled={u.id === meId} onClick={() => act(() => updateUserAction(u.id, { isActive: !u.isActive }), u.isActive ? "Deactivated — signed out everywhere" : "Reactivated")}>
               {u.isActive ? "Deactivate" : "Reactivate"}
             </button>

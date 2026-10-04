@@ -13,6 +13,11 @@ const STYLES: Record<string, string> = {
   spam: "bg-paper text-muted border-line",
 };
 
+/** Colour classes for a status, shared by pills and status dropdowns. */
+export function statusClass(status: string) {
+  return STYLES[status] ?? STYLES.draft;
+}
+
 export function StatusPill({ status, label }: { status: string; label?: string }) {
   return <span className={`inline-flex rounded-full border px-2 py-0.5 text-xs font-semibold capitalize ${STYLES[status] ?? STYLES.draft}`}>{label ?? status.replace(/_/g, " ")}</span>;
 }

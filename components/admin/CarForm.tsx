@@ -7,6 +7,8 @@ import { saveCarAction } from "@/app/admin/(panel)/cars/actions";
 import { ImageManager } from "@/components/admin/ImageManager";
 import { TagInput } from "@/components/admin/TagInput";
 import { toast } from "@/components/admin/Toast";
+import { Dropdown } from "@/components/ui/Dropdown";
+import { Autocomplete } from "@/components/ui/Autocomplete";
 import { BADGES, BODY_TYPES, CAR_STATUSES, FUELS, REG_STATES, TRANSMISSIONS, type CarStatus } from "@/lib/constants";
 import { INSPECTION_TEMPLATE, summariseInspection, type InspectionResult } from "@/lib/inspection";
 import { formatInr, formatLakh } from "@/lib/format";
@@ -72,6 +74,9 @@ export function CarForm({ carId, initial, master, perms, quick = false, preview 
     setDirty(true);
     if (errors[k as string]) setErrors((e) => ({ ...e, [k]: "" }));
   };
+  const pick = (k: keyof CarFormValues, label: string, options: (string | { value: string; label: string })[]) => (
+    <Dropdown aria-label={label} value={String(v[k] ?? "")} onChange={(val) => set(k, val as never)} options={options} invalid={!!errors[k]} />
+  );
   const bind = (k: keyof CarFormValues) => ({
     value: v[k] as string,
     onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => set(k, e.target.value as never),
@@ -177,40 +182,37 @@ export function CarForm({ carId, initial, master, perms, quick = false, preview 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <div>
               <label className="label" htmlFor="f-make">Make *</label>
-              <input id="f-make" list="dl-makes" className="field" {...bind("make")} autoComplete="off" />
-              <datalist id="dl-makes">{makes.map((m) => <option key={m} value={m} />)}</datalist>
+              <Autocomplete id="f-make" value={v.make} onChange={(x) => set("make", x)} suggestions={makes} invalid={!!errors.make} placeholder="e.g. Tata" />
               {err("make")}
             </div>
             <div>
               <label className="label" htmlFor="f-model">Model *</label>
-              <input
+              <Autocomplete
                 id="f-model"
-                list="dl-models"
-                className="field"
-                {...bind("model")}
-                onChange={(e) => {
-                  set("model", e.target.value);
-                  const bt = master[v.make]?.bodyTypes[e.target.value];
+                value={v.model}
+                invalid={!!errors.model}
+                placeholder={models[0] ? `e.g. ${models[0]}` : "e.g. Nexon"}
+                suggestions={models}
+                onChange={(x) => {
+                  set("model", x);
+                  const bt = master[v.make]?.bodyTypes[x];
                   if (bt) set("bodyType", bt);
                 }}
-                autoComplete="off"
               />
-              <datalist id="dl-models">{models.map((m) => <option key={m} value={m} />)}</datalist>
               {err("model")}
               {v.make && v.model && !models.includes(v.model) && <p className="hint">New model — it&apos;ll be added to the list.</p>}
             </div>
             <div>
               <label className="label" htmlFor="f-variant">Variant</label>
-              <input id="f-variant" list="dl-variants" className="field" {...bind("variant")} autoComplete="off" placeholder="e.g. Sharp Pro CVT" />
-              <datalist id="dl-variants">{variants.map((m) => <option key={m} value={m} />)}</datalist>
+              <Autocomplete id="f-variant" value={v.variant} onChange={(x) => set("variant", x)} suggestions={variants} placeholder="e.g. Sharp Pro CVT" />
             </div>
             <Field label="Manufacturing year *" error={errors.year}><input className="field" inputMode="numeric" {...bind("year")} /></Field>
             {!quick && <Field label="Registration year"><input className="field" inputMode="numeric" {...bind("registrationYear")} placeholder={v.year} /></Field>}
-            <Field label="Fuel"><select className="field" {...bind("fuel")}>{FUELS.map((f) => <option key={f}>{f}</option>)}</select></Field>
-            <Field label="Gearbox"><select className="field" {...bind("transmission")}>{TRANSMISSIONS.map((f) => <option key={f}>{f}</option>)}</select></Field>
+            <Field label="Fuel">{pick("fuel", "Fuel", [...FUELS])}</Field>
+            <Field label="Gearbox">{pick("transmission", "Gearbox", [...TRANSMISSIONS])}</Field>
             {!quick && (
               <>
-                <Field label="Body type"><select className="field" {...bind("bodyType")}>{BODY_TYPES.map((f) => <option key={f}>{f}</option>)}</select></Field>
+                <Field label="Body type">{pick("bodyType", "Body type", [...BODY_TYPES])}</Field>
                 <Field label="Colour"><input className="field" {...bind("color")} /></Field>
                 <Field label="Seats"><input className="field" inputMode="numeric" {...bind("seats")} /></Field>
               </>
@@ -218,7 +220,7 @@ export function CarForm({ carId, initial, master, perms, quick = false, preview 
             {quick && (
               <>
                 <Field label="Kilometres"><input className="field" inputMode="numeric" {...bind("kmDriven")} placeholder="49000" /></Field>
-                <Field label="Owners"><select className="field" {...bind("owners")}>{[1, 2, 3, 4].map((n) => <option key={n} value={n}>{n}</option>)}</select></Field>
+                <Field label="Owners">{pick("owners", "Owners", ["1", "2", "3", "4"].map((n) => ({ value: n, label: n === "1" ? "1st owner" : n === "2" ? "2nd owner" : n === "3" ? "3rd owner" : "4th or more" })))}</Field>
                 <Field label="Price (₹) *" error={errors.priceInr} hint={price ? formatInr(price) : undefined}><input className="field" inputMode="numeric" {...bind("priceInr")} placeholder="1475000" /></Field>
               </>
             )}
@@ -229,10 +231,10 @@ export function CarForm({ carId, initial, master, perms, quick = false, preview 
           <Section id="usage" title="Usage & registration">
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <Field label="Kilometres driven"><input className="field" inputMode="numeric" {...bind("kmDriven")} /></Field>
-              <Field label="Owners"><select className="field" {...bind("owners")}>{[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>{n}</option>)}</select></Field>
-              <Field label="RTO / state" hint="e.g. DL, HR03"><input className="field uppercase" list="dl-rto" {...bind("rto")} /><datalist id="dl-rto">{REG_STATES.map((s) => <option key={s.code} value={s.code} />)}</datalist></Field>
+              <Field label="Owners">{pick("owners", "Owners", ["1", "2", "3", "4", "5"].map((n) => ({ value: n, label: ["1st", "2nd", "3rd", "4th", "5th"][Number(n) - 1] + " owner" })))}</Field>
+              <Field label="RTO / state" hint="e.g. DL, HR03"><Autocomplete aria-label="RTO / state" inputClassName="uppercase" value={v.rto} onChange={(x) => set("rto", x.toUpperCase())} suggestions={REG_STATES.filter((s) => s.code !== "OT").map((s) => s.code)} /></Field>
               <Field label="Registration number" hint="Full number is admin-only; the site shows it masked."><input className="field uppercase" {...bind("regNumber")} placeholder="DL3CAB1234" /></Field>
-              <Field label="Insurance type"><input className="field" list="dl-ins" {...bind("insuranceType")} /><datalist id="dl-ins"><option value="Zero depreciation" /><option value="Comprehensive" /><option value="Third party" /><option value="Expired" /></datalist></Field>
+              <Field label="Insurance type"><Autocomplete aria-label="Insurance type" value={v.insuranceType} onChange={(x) => set("insuranceType", x)} suggestions={["Zero depreciation", "Comprehensive", "Third party", "Expired"]} /></Field>
               <Field label="Insurance valid till"><input type="date" className="field" {...bind("insuranceValidTill")} /></Field>
             </div>
           </Section>
@@ -242,7 +244,7 @@ export function CarForm({ carId, initial, master, perms, quick = false, preview 
           <Section id="pricing" title="Pricing">
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               <Field label="Price (₹) *" error={errors.priceInr}><input className="field" inputMode="numeric" {...bind("priceInr")} placeholder="1475000" /></Field>
-              <Field label="Badge"><select className="field" {...bind("badge")}><option value="">None</option>{BADGES.map((b) => <option key={b}>{b}</option>)}</select></Field>
+              <Field label="Badge">{pick("badge", "Badge", [{ value: "", label: "No badge" }, ...BADGES.map((b) => ({ value: b, label: b }))])}</Field>
               <div className="flex flex-col justify-end gap-2 pb-2 text-sm">
                 <label className="flex items-center gap-2"><input type="checkbox" className="size-4 accent-[var(--color-red)]" checked={v.tcsApplicable} onChange={(e) => set("tcsApplicable", e.target.checked)} /> TCS applies (above ₹10 L)</label>
                 <label className="flex items-center gap-2"><input type="checkbox" className="size-4 accent-[var(--color-red)]" checked={v.featured} onChange={(e) => set("featured", e.target.checked)} disabled={!perms.publish} /> Featured on home page</label>
@@ -356,9 +358,15 @@ export function CarForm({ carId, initial, master, perms, quick = false, preview 
         <div className="mx-auto flex max-w-[1400px] flex-wrap items-center gap-2">
           <span className="mr-auto flex items-center gap-2 text-sm text-muted">
             Status:
-            <select aria-label="Status" className="rounded-md border border-line bg-card px-2 py-1 text-sm font-semibold capitalize text-text" value={v.status} disabled={!perms.publish} onChange={(e) => set("status", e.target.value as CarStatus)}>
-              {CAR_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-            </select>
+            <Dropdown
+              variant="compact"
+              className="w-[130px]"
+              aria-label="Status"
+              value={v.status}
+              disabled={!perms.publish}
+              onChange={(val) => set("status", val as CarStatus)}
+              options={CAR_STATUSES.map((s) => ({ value: s, label: s[0].toUpperCase() + s.slice(1) }))}
+            />
             {dirty && <span className="hidden sm:inline">· unsaved changes</span>}
           </span>
           {preview && (

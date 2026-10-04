@@ -4,6 +4,7 @@ import { SlidersHorizontal, X } from "lucide-react";
 import { CarCard } from "@/components/cars/CarCard";
 import { CompareTray } from "@/components/cars/CompareTray";
 import { Modal } from "@/components/ui/Modal";
+import { Dropdown } from "@/components/ui/Dropdown";
 import { WantedForm } from "@/components/forms/WantedForm";
 import { applyFilters, countActive, EMPTY_FILTERS, filtersToParams, SORT_LABELS, transmissionGroup, type Filters, type SortKey } from "@/lib/filters";
 import { formatKm, formatLakh } from "@/lib/format";
@@ -95,14 +96,17 @@ export function InventoryView({
           <button type="button" className="btn btn-outline btn-sm lg:hidden" onClick={() => setSheetOpen(true)}>
             <SlidersHorizontal className="size-4" aria-hidden /> Filters{active ? ` (${active})` : ""}
           </button>
-          <label className="flex items-center gap-2 text-sm">
-            <span className="text-muted">Sort</span>
-            <select className="field min-h-9 w-auto py-1.5 text-sm" value={f.sort} onChange={(e) => set({ sort: e.target.value as SortKey })}>
-              {Object.entries(SORT_LABELS).map(([k, v]) => (
-                <option key={k} value={k}>{v}</option>
-              ))}
-            </select>
-          </label>
+          <div className="flex items-center gap-2 text-sm">
+            <span className="text-muted" id="sort-label">Sort</span>
+            <Dropdown
+              variant="compact"
+              aria-labelledby="sort-label"
+              className="min-w-[190px]"
+              value={f.sort}
+              onChange={(v) => set({ sort: v as SortKey })}
+              options={Object.entries(SORT_LABELS).map(([k, v]) => ({ value: k, label: v }))}
+            />
+          </div>
         </div>
 
         {chips.length > 0 && (
@@ -183,18 +187,20 @@ function FilterPanel({
       <fieldset>
         <legend className="label">Budget</legend>
         <div className="grid grid-cols-2 gap-2">
-          <select aria-label="Minimum price" className="field" value={f.minPrice ?? ""} onChange={(e) => set({ minPrice: e.target.value ? Number(e.target.value) : null })}>
-            <option value="">Min</option>
-            {PRICE_STEPS.map((p) => (
-              <option key={p} value={p} disabled={f.maxPrice != null && p >= f.maxPrice}>{formatLakh(p)}</option>
-            ))}
-          </select>
-          <select aria-label="Maximum price" className="field" value={f.maxPrice ?? ""} onChange={(e) => set({ maxPrice: e.target.value ? Number(e.target.value) : null })}>
-            <option value="">Max</option>
-            {PRICE_STEPS.map((p) => (
-              <option key={p} value={p} disabled={f.minPrice != null && p <= f.minPrice}>{formatLakh(p)}</option>
-            ))}
-          </select>
+          <Dropdown
+            aria-label="Minimum price"
+            value={f.minPrice != null ? String(f.minPrice) : ""}
+            onChange={(v) => set({ minPrice: v ? Number(v) : null })}
+            options={[{ value: "", label: "No min" }, ...PRICE_STEPS.map((p) => ({ value: String(p), label: formatLakh(p), disabled: f.maxPrice != null && p >= f.maxPrice }))]}
+            placeholder="No min"
+          />
+          <Dropdown
+            aria-label="Maximum price"
+            value={f.maxPrice != null ? String(f.maxPrice) : ""}
+            onChange={(v) => set({ maxPrice: v ? Number(v) : null })}
+            options={[{ value: "", label: "No max" }, ...PRICE_STEPS.map((p) => ({ value: String(p), label: formatLakh(p), disabled: f.minPrice != null && p <= f.minPrice }))]}
+            placeholder="No max"
+          />
         </div>
       </fieldset>
 
@@ -206,21 +212,23 @@ function FilterPanel({
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label htmlFor={`${uid}-year`} className="label">Year from</label>
-          <select id={`${uid}-year`} className="field" value={f.minYear ?? ""} onChange={(e) => set({ minYear: e.target.value ? Number(e.target.value) : null })}>
-            <option value="">Any</option>
-            {facets.years.map((y) => (
-              <option key={y} value={y}>{y}</option>
-            ))}
-          </select>
+          <Dropdown
+            id={`${uid}-year`}
+            value={f.minYear != null ? String(f.minYear) : ""}
+            onChange={(v) => set({ minYear: v ? Number(v) : null })}
+            options={[{ value: "", label: "Any year" }, ...facets.years.map((y) => ({ value: String(y), label: `${y} or newer` }))]}
+            placeholder="Any year"
+          />
         </div>
         <div>
           <label htmlFor={`${uid}-km`} className="label">Kilometres</label>
-          <select id={`${uid}-km`} className="field" value={f.maxKm ?? ""} onChange={(e) => set({ maxKm: e.target.value ? Number(e.target.value) : null })}>
-            <option value="">Any</option>
-            {KM_STEPS.map((k) => (
-              <option key={k} value={k}>Under {formatKm(k)}</option>
-            ))}
-          </select>
+          <Dropdown
+            id={`${uid}-km`}
+            value={f.maxKm != null ? String(f.maxKm) : ""}
+            onChange={(v) => set({ maxKm: v ? Number(v) : null })}
+            options={[{ value: "", label: "Any km" }, ...KM_STEPS.map((k) => ({ value: String(k), label: `Under ${formatKm(k)}` }))]}
+            placeholder="Any km"
+          />
         </div>
       </div>
 

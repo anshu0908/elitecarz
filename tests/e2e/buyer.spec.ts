@@ -44,9 +44,11 @@ test("old Shopify product URL redirects to the new car page", async ({ page }) =
 
 test("sell form lists Tata, Mahindra and Toyota and years through the current year", async ({ page }) => {
   await page.goto("/sell-your-car");
-  const brand = page.getByLabel(/^Brand/);
-  for (const b of ["Tata", "Mahindra", "Toyota"]) await expect(brand.locator(`option[value="${b}"]`)).toHaveCount(1);
-  await expect(page.getByLabel(/^Manufacturing year/).locator(`option[value="${new Date().getFullYear()}"]`)).toHaveCount(1);
+  await page.getByRole("combobox", { name: /^Brand/ }).click();
+  for (const b of ["Tata", "Mahindra", "Toyota"]) await expect(page.getByRole("option", { name: b, exact: true })).toHaveCount(1);
+  await page.keyboard.press("Escape");
+  await page.getByRole("combobox", { name: /^Manufacturing year/ }).click();
+  await expect(page.getByRole("option", { name: String(new Date().getFullYear()), exact: true })).toHaveCount(1);
 });
 
 test("public pages never expose private car data", async ({ request }) => {

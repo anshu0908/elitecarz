@@ -5,6 +5,8 @@ import { useMemo, useState, useTransition } from "react";
 import { AlarmClock, Copy, MessageSquareText, Phone, Search } from "lucide-react";
 import { updateLeadAction } from "@/app/admin/(panel)/leads/actions";
 import { toast } from "@/components/admin/Toast";
+import { statusClass } from "@/components/admin/StatusPill";
+import { Dropdown } from "@/components/ui/Dropdown";
 import { LEAD_STATUS_LABELS, LEAD_STATUSES, LEAD_TYPE_LABELS, LEAD_TYPES, type LeadStatus, type LeadType } from "@/lib/constants";
 import { formatDate, formatPhone } from "@/lib/format";
 import { telLink, whatsappLink } from "@/lib/whatsapp";
@@ -85,19 +87,33 @@ export function LeadsBoard({
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted" aria-hidden />
           <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Name, phone or car" className="field min-h-10 pl-9 text-sm" />
         </label>
-        <select aria-label="Type" className="field min-h-10 w-auto text-sm" value={filters.type} onChange={(e) => setParam("type", e.target.value)}>
-          <option value="">All types</option>
-          {LEAD_TYPES.map((t) => <option key={t} value={t}>{LEAD_TYPE_LABELS[t]}</option>)}
-        </select>
-        <select aria-label="Car" className="field min-h-10 w-auto max-w-[220px] text-sm" value={filters.car} onChange={(e) => setParam("car", e.target.value)}>
-          <option value="">All cars</option>
-          {cars.map((c) => <option key={c.id} value={c.id}>{c.title}</option>)}
-        </select>
-        <select aria-label="Assignee" className="field min-h-10 w-auto text-sm" value={filters.assignee} onChange={(e) => setParam("assignee", e.target.value)}>
-          <option value="">Anyone</option>
-          <option value="none">Unassigned</option>
-          {users.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
-        </select>
+        <Dropdown
+          variant="compact"
+          aria-label="Type"
+          className="min-w-[150px]"
+          buttonClassName="min-h-10"
+          value={filters.type}
+          onChange={(v) => setParam("type", v)}
+          options={[{ value: "", label: "All types" }, ...LEAD_TYPES.map((t) => ({ value: t, label: LEAD_TYPE_LABELS[t] }))]}
+        />
+        <Dropdown
+          variant="compact"
+          aria-label="Car"
+          className="w-[220px]"
+          buttonClassName="min-h-10"
+          value={filters.car}
+          onChange={(v) => setParam("car", v)}
+          options={[{ value: "", label: "All cars" }, ...cars.map((c) => ({ value: c.id, label: c.title }))]}
+        />
+        <Dropdown
+          variant="compact"
+          aria-label="Assignee"
+          className="min-w-[150px]"
+          buttonClassName="min-h-10"
+          value={filters.assignee}
+          onChange={(v) => setParam("assignee", v)}
+          options={[{ value: "", label: "Anyone" }, { value: "none", label: "Unassigned" }, ...users.map((u) => ({ value: u.id, label: u.name }))]}
+        />
         <label className="flex items-center gap-2 rounded-lg bg-card px-3 py-2 text-sm">
           <input type="checkbox" className="accent-[var(--color-red)]" checked={filters.clicks} onChange={(e) => setParam("clicks", e.target.checked ? "1" : "")} /> WhatsApp clicks
         </label>
@@ -132,9 +148,16 @@ export function LeadsBoard({
                   <td className="p-3">{LEAD_TYPE_LABELS[l.type as LeadType] ?? l.type}</td>
                   <td className="max-w-[220px] truncate p-3">{l.car ?? "—"}</td>
                   <td className="p-3">
-                    <select aria-label="Status" disabled={!canEdit} value={l.status} onChange={(e) => move(l.id, e.target.value as LeadStatus)} className="rounded-md border border-line bg-card px-2 py-1 text-xs font-semibold">
-                      {LEAD_STATUSES.map((s) => <option key={s} value={s}>{LEAD_STATUS_LABELS[s]}</option>)}
-                    </select>
+                    <Dropdown
+                      variant="ghost"
+                      aria-label={`Status of ${l.name ?? "lead"}`}
+                      className="w-[150px]"
+                      buttonClassName={`rounded-full ${statusClass(l.status)}`}
+                      disabled={!canEdit}
+                      value={l.status}
+                      onChange={(v) => move(l.id, v as LeadStatus)}
+                      options={LEAD_STATUSES.map((s) => ({ value: s, label: LEAD_STATUS_LABELS[s] }))}
+                    />
                   </td>
                   <td className="p-3">{l.assignee ?? <span className="text-muted">—</span>}</td>
                   <td className="p-3"><FollowUp at={l.nextFollowupAt} overdue={l.overdue} /></td>
@@ -194,12 +217,17 @@ export function LeadsBoard({
                           </div>
                         )}
                         {canEdit && (
-                          <label className="mt-2 block">
-                            <span className="sr-only">Move to</span>
-                            <select value={l.status} onChange={(e) => move(l.id, e.target.value as LeadStatus)} className="w-full rounded-md border border-line bg-paper px-2 py-1 text-xs">
-                              {LEAD_STATUSES.map((s) => <option key={s} value={s}>Move to: {LEAD_STATUS_LABELS[s]}</option>)}
-                            </select>
-                          </label>
+                          <div className="mt-2">
+                            <Dropdown
+                              variant="ghost"
+                              className="w-full"
+                              buttonClassName={`rounded-full ${statusClass(l.status)}`}
+                              aria-label={`Move ${l.name ?? "lead"} to`}
+                              value={l.status}
+                              onChange={(v) => move(l.id, v as LeadStatus)}
+                              options={LEAD_STATUSES.map((s) => ({ value: s, label: LEAD_STATUS_LABELS[s] }))}
+                            />
+                          </div>
                         )}
                       </li>
                     ))}

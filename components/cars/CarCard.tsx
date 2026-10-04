@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { Cog, Fuel, Gauge, UserRound } from "lucide-react";
 import { ShortlistButton, CompareToggle } from "@/components/cars/CarToggles";
 import { calculateEmi } from "@/lib/emi";
 import { formatInr, formatKm, formatLakh, ordinal } from "@/lib/format";
@@ -14,18 +15,18 @@ export function StatusBadge({ car }: { car: Pick<PublicCar, "status" | "badge"> 
   if (car.status === "sold") return <span className="rounded-md bg-ink px-2 py-1 text-xs font-bold uppercase tracking-wide text-white">Sold</span>;
   if (car.status === "reserved") return <span className="rounded-md bg-warn px-2 py-1 text-xs font-bold uppercase tracking-wide text-white">Reserved</span>;
   if (car.badge === "Price drop") return <span className="rounded-md bg-red px-2 py-1 text-xs font-bold uppercase tracking-wide text-white">Price drop</span>;
-  if (car.badge) return <span className="rounded-md bg-white px-2 py-1 text-xs font-bold uppercase tracking-wide text-ink">{car.badge}</span>;
+  if (car.badge) return <span className="rounded-md bg-white px-2 py-1 text-xs font-bold uppercase tracking-wide text-ink ring-1 ring-black/10">{car.badge}</span>;
   return null;
 }
 
 export function CarCard({ car, finance, priority = false }: { car: PublicCar; finance: FinanceSettings; priority?: boolean }) {
   const sold = car.status === "sold";
   const specs = [
-    car.kmDriven != null ? formatKm(car.kmDriven) : null,
-    car.fuel,
-    car.transmission,
-    car.owners ? `${ordinal(car.owners)} owner` : null,
-  ].filter(Boolean);
+    { icon: Gauge, label: "Kilometres", value: car.kmDriven != null ? formatKm(car.kmDriven) : "—" },
+    { icon: Fuel, label: "Fuel", value: car.fuel },
+    { icon: Cog, label: "Gearbox", value: car.transmission },
+    { icon: UserRound, label: "Ownership", value: car.owners ? `${ordinal(car.owners)} owner` : "—" },
+  ];
 
   return (
     <article className="group relative flex flex-col overflow-hidden rounded-[var(--radius-card)] border border-line bg-card shadow-[var(--shadow-card)] transition hover:-translate-y-0.5 hover:shadow-[var(--shadow-pop)]">
@@ -58,14 +59,17 @@ export function CarCard({ car, finance, priority = false }: { car: PublicCar; fi
           </h3>
           <p className="mt-0.5 truncate text-sm text-muted">{car.variant}</p>
         </div>
-        <p className="num flex flex-wrap gap-x-2 gap-y-1 text-[0.8rem] text-muted">
-          {specs.map((s, i) => (
-            <span key={i} className="flex items-center gap-2">
-              {i > 0 && <span aria-hidden className="size-1 rounded-full bg-line-strong" />}
-              {s}
-            </span>
+        <dl className="num grid grid-cols-2 gap-x-3 gap-y-1.5 text-[0.8rem] text-muted">
+          {specs.map(({ icon: Icon, label, value }) => (
+            <div key={label} className="flex min-w-0 items-center gap-1.5">
+              <dt className="shrink-0">
+                <Icon className="size-3.5 text-muted/80" aria-hidden />
+                <span className="sr-only">{label}</span>
+              </dt>
+              <dd className="truncate">{value}</dd>
+            </div>
           ))}
-        </p>
+        </dl>
         <div className="mt-auto flex items-end justify-between gap-2 border-t border-line pt-3">
           <div>
             <p className="num font-display text-[1.35rem] font-bold leading-none">

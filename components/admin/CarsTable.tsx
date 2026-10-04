@@ -7,7 +7,8 @@ import { Copy, ExternalLink, ImageOff, LayoutGrid, MoreHorizontal, Pencil, Rows3
 import { bulkCarAction, duplicateCarAction, inlineUpdateAction } from "@/app/admin/(panel)/cars/actions";
 import { toast } from "@/components/admin/Toast";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
-import { StatusPill } from "@/components/admin/StatusPill";
+import { StatusPill, statusClass } from "@/components/admin/StatusPill";
+import { Dropdown } from "@/components/ui/Dropdown";
 import { formatDate, formatInr, formatKm, formatLakh } from "@/lib/format";
 import { CAR_STATUSES, type CarStatus } from "@/lib/constants";
 import type { BulkAction } from "@/lib/admin/cars-service";
@@ -139,18 +140,29 @@ export function CarsTable({ rows, initialStatus, perms }: { rows: AdminCarRow[];
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted" aria-hidden />
           <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Title, stock no. or reg no." className="field min-h-10 pl-9 text-sm" />
         </label>
-        <select aria-label="Make" className="field min-h-10 w-auto text-sm" value={make} onChange={(e) => setMake(e.target.value)}>
-          <option value="">All makes</option>
-          {makes.map((m) => (
-            <option key={m}>{m}</option>
-          ))}
-        </select>
-        <select aria-label="Sort" className="field min-h-10 w-auto text-sm" value={sort} onChange={(e) => setSort(e.target.value as SortKey)}>
-          <option value="updated">Recently updated</option>
-          <option value="price">Price (high first)</option>
-          <option value="days">Days in stock</option>
-          <option value="views">Most viewed</option>
-        </select>
+        <Dropdown
+          variant="compact"
+          aria-label="Make"
+          className="min-w-[150px]"
+          buttonClassName="min-h-10"
+          value={make}
+          onChange={setMake}
+          options={[{ value: "", label: "All makes" }, ...makes.map((m) => ({ value: m, label: m }))]}
+        />
+        <Dropdown
+          variant="compact"
+          aria-label="Sort"
+          className="min-w-[180px]"
+          buttonClassName="min-h-10"
+          value={sort}
+          onChange={(v) => setSort(v as SortKey)}
+          options={[
+            { value: "updated", label: "Recently updated" },
+            { value: "price", label: "Price (high first)" },
+            { value: "days", label: "Days in stock" },
+            { value: "views", label: "Most viewed" },
+          ]}
+        />
         <label className="flex items-center gap-2 rounded-lg bg-card px-3 py-2 text-sm">
           <input type="checkbox" checked={missingPhotos} onChange={(e) => setMissingPhotos(e.target.checked)} className="accent-[var(--color-red)]" /> Missing photos
         </label>
@@ -185,7 +197,7 @@ export function CarsTable({ rows, initialStatus, perms }: { rows: AdminCarRow[];
       ) : view === "table" ? (
         <div className="overflow-x-auto rounded-xl border border-line bg-card">
           <table className="num w-full min-w-[980px] text-sm">
-            <thead className="bg-paper text-left text-xs uppercase tracking-wide text-muted">
+            <thead className="whitespace-nowrap bg-paper text-left text-xs uppercase tracking-wide text-muted">
               <tr>
                 <th className="w-10 p-3">
                   <input type="checkbox" aria-label="Select all" checked={allSelected} onChange={() => setSelected(allSelected ? new Set() : new Set(list.map((r) => r.id)))} className="size-4 accent-[var(--color-red)]" />
@@ -196,7 +208,7 @@ export function CarsTable({ rows, initialStatus, perms }: { rows: AdminCarRow[];
                 <th className="p-3 font-semibold">Status</th>
                 <th className="p-3 text-center font-semibold" title="Featured">★</th>
                 <th className="p-3 font-semibold">Days</th>
-                <th className="p-3 font-semibold">Views / leads</th>
+                <th className="p-3 font-semibold">Views · Leads</th>
                 {perms.viewCost && <th className="p-3 font-semibold">Margin</th>}
                 <th className="p-3 font-semibold">Updated</th>
                 <th className="p-3"><span className="sr-only">Actions</span></th>
@@ -222,17 +234,16 @@ export function CarsTable({ rows, initialStatus, perms }: { rows: AdminCarRow[];
                     <PriceCell value={r.priceInr} disabled={!perms.edit || (!perms.publish && r.status !== "draft")} onSave={(v) => inline(r.id, { priceInr: v })} />
                   </td>
                   <td className="p-3">
-                    <select
+                    <Dropdown
+                      variant="ghost"
                       aria-label={`Status of ${r.title}`}
-                      className="rounded-md border border-line bg-card px-2 py-1 text-xs font-semibold capitalize"
+                      className="w-[120px]"
+                      buttonClassName={`capitalize rounded-full ${statusClass(r.status)}`}
                       value={r.status}
                       disabled={!perms.publish}
-                      onChange={(e) => inline(r.id, { status: e.target.value as CarStatus })}
-                    >
-                      {CAR_STATUSES.map((s) => (
-                        <option key={s} value={s}>{s}</option>
-                      ))}
-                    </select>
+                      onChange={(v) => inline(r.id, { status: v as CarStatus })}
+                      options={CAR_STATUSES.map((s) => ({ value: s, label: s[0].toUpperCase() + s.slice(1) }))}
+                    />
                   </td>
                   <td className="p-3 text-center">
                     <button type="button" disabled={!perms.publish} onClick={() => inline(r.id, { featured: !r.featured })} aria-pressed={r.featured} aria-label={r.featured ? "Unfeature" : "Feature"} className="grid size-8 place-items-center rounded-md hover:bg-paper disabled:opacity-40">

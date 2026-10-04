@@ -67,10 +67,59 @@ export function CarDetailView({ car, all, settings, lenders }: { car: PublicCarD
     <div className="container-x py-6 md:py-10">
       <Breadcrumbs items={[{ name: "Home", path: "/" }, { name: "Buy a car", path: "/cars" }, { name: `${car.make} ${car.model}` }]} />
 
-      <div className="mt-4 grid gap-8 lg:grid-cols-[minmax(0,1fr)_380px]">
-        {/* LEFT */}
-        <div className="min-w-0 space-y-10">
+      {/* Phones: gallery → price box → details. Desktop: gallery + details on the left, sticky price box on the right. */}
+      <div className="mt-4 grid gap-x-8 gap-y-6 lg:grid-cols-[minmax(0,1fr)_380px] lg:gap-y-10">
+        <div className="min-w-0 lg:col-start-1 lg:row-start-1">
           <Gallery images={car.images} title={car.title} sold={sold} />
+        </div>
+
+        {/* RIGHT: sticky price box */}
+        <aside className="lg:sticky lg:top-20 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:self-start" aria-label="Price and actions">
+          <div className="card p-5 shadow-[var(--shadow-card)]">
+            <div className="flex flex-wrap gap-1.5">
+              <StatusBadge car={car} />
+              {!sold && <span className="chip border-ok/25 bg-ok-soft text-ok">Fixed price</span>}
+            </div>
+            <h1 className="mt-3 text-[1.55rem] font-extrabold leading-tight">{car.title}</h1>
+            <p className="num mt-1.5 text-sm text-muted">
+              {[car.kmDriven != null ? formatKm(car.kmDriven) : null, car.fuel, car.transmission, car.owners ? `${ordinal(car.owners)} owner` : null].filter(Boolean).join(" · ")}
+            </p>
+
+            <div className="mt-4 border-t border-line pt-4">
+              {car.priceDrop && (
+                <p className="num text-sm text-muted">
+                  <s>{formatInr(car.priceDrop.oldPrice)}</s> <span className="font-semibold text-red">Save {formatInr(car.priceDrop.oldPrice - car.priceDrop.newPrice)}</span>
+                </p>
+              )}
+              <p className="num font-display text-[2.1rem] font-extrabold leading-none">{formatInr(car.priceInr)}</p>
+              <dl className="num mt-3 space-y-1.5 text-sm">
+                <div className="flex justify-between"><dt className="text-muted">RC transfer & paperwork</dt><dd className="font-semibold text-ok">Included</dd></div>
+                <div className="flex justify-between">
+                  <dt className="text-muted">TCS {breakup.tcsApplies ? "(1%, claimable in ITR)" : ""}</dt>
+                  <dd className="font-semibold">{breakup.tcsApplies ? formatInr(breakup.tcs) : "Not applicable"}</dd>
+                </div>
+                <div className="flex justify-between border-t border-line pt-2 text-base"><dt className="font-bold">Total payable</dt><dd className="font-bold">{formatInr(breakup.total)}</dd></div>
+              </dl>
+              {!sold && (
+                <a href="#emi" className="num mt-2 inline-block text-sm font-semibold text-red hover:underline">
+                  EMI from {formatInr(emiFor(car.priceInr, settings.finance))}/month
+                </a>
+              )}
+            </div>
+
+            <div className="mt-5">
+              <CarActions car={{ id: car.id, slug: car.slug, title: car.title, priceInr: car.priceInr, stockNo: car.stockNo, status: car.status }} whatsapp={b.whatsapp} phone={b.phone} booking={settings.booking} url={url} />
+            </div>
+          </div>
+          <div className="mt-4 flex items-center justify-between gap-3 print:hidden">
+            <ShareRow title={`${car.title} — ${formatLakh(car.priceInr)}`} url={url} />
+          </div>
+          <p className="mt-3 flex items-center gap-1.5 text-xs text-muted">
+            <FileText className="size-3.5" aria-hidden /> Listed {car.publishedAt ? formatDate(car.publishedAt) : ""} · {car.views} views
+          </p>
+        </aside>
+
+        <div className="min-w-0 space-y-10 lg:col-start-1 lg:row-start-2">
 
           <section aria-labelledby="specs">
             <h2 id="specs" className="text-xl font-extrabold">Specifications</h2>
@@ -185,51 +234,7 @@ export function CarDetailView({ car, all, settings, lenders }: { car: PublicCarD
           </section>
         </div>
 
-        {/* RIGHT: sticky price box */}
-        <aside className="lg:sticky lg:top-20 lg:self-start" aria-label="Price and actions">
-          <div className="card p-5 shadow-[var(--shadow-card)]">
-            <div className="flex flex-wrap gap-1.5">
-              <StatusBadge car={car} />
-              {!sold && <span className="chip border-ok/25 bg-ok-soft text-ok">Fixed price</span>}
-            </div>
-            <h1 className="mt-3 text-[1.55rem] font-extrabold leading-tight">{car.title}</h1>
-            <p className="num mt-1.5 text-sm text-muted">
-              {[car.kmDriven != null ? formatKm(car.kmDriven) : null, car.fuel, car.transmission, car.owners ? `${ordinal(car.owners)} owner` : null].filter(Boolean).join(" · ")}
-            </p>
 
-            <div className="mt-4 border-t border-line pt-4">
-              {car.priceDrop && (
-                <p className="num text-sm text-muted">
-                  <s>{formatInr(car.priceDrop.oldPrice)}</s> <span className="font-semibold text-red">Save {formatInr(car.priceDrop.oldPrice - car.priceDrop.newPrice)}</span>
-                </p>
-              )}
-              <p className="num font-display text-[2.1rem] font-extrabold leading-none">{formatInr(car.priceInr)}</p>
-              <dl className="num mt-3 space-y-1.5 text-sm">
-                <div className="flex justify-between"><dt className="text-muted">RC transfer & paperwork</dt><dd className="font-semibold text-ok">Included</dd></div>
-                <div className="flex justify-between">
-                  <dt className="text-muted">TCS {breakup.tcsApplies ? "(1%, claimable in ITR)" : ""}</dt>
-                  <dd className="font-semibold">{breakup.tcsApplies ? formatInr(breakup.tcs) : "Not applicable"}</dd>
-                </div>
-                <div className="flex justify-between border-t border-line pt-2 text-base"><dt className="font-bold">Total payable</dt><dd className="font-bold">{formatInr(breakup.total)}</dd></div>
-              </dl>
-              {!sold && (
-                <a href="#emi" className="num mt-2 inline-block text-sm font-semibold text-red hover:underline">
-                  EMI from {formatInr(emiFor(car.priceInr, settings.finance))}/month
-                </a>
-              )}
-            </div>
-
-            <div className="mt-5">
-              <CarActions car={{ id: car.id, slug: car.slug, title: car.title, priceInr: car.priceInr, stockNo: car.stockNo, status: car.status }} whatsapp={b.whatsapp} phone={b.phone} booking={settings.booking} url={url} />
-            </div>
-          </div>
-          <div className="mt-4 flex items-center justify-between gap-3 print:hidden">
-            <ShareRow title={`${car.title} — ${formatLakh(car.priceInr)}`} url={url} />
-          </div>
-          <p className="mt-3 flex items-center gap-1.5 text-xs text-muted">
-            <FileText className="size-3.5" aria-hidden /> Listed {car.publishedAt ? formatDate(car.publishedAt) : ""} · {car.views} views
-          </p>
-        </aside>
       </div>
 
       {similar.length > 0 && (

@@ -1,0 +1,18 @@
+import { chromium } from "@playwright/test";
+const out = process.argv[2];
+const b = await chromium.launch();
+const ctx = await b.newContext({ viewport: { width: 1366, height: 860 } });
+const p = await ctx.newPage();
+await p.goto("http://localhost:3000/admin/login");
+await p.getByLabel("Email").fill("owner@elitecarz.demo");
+await p.getByLabel("Password").fill("EliteCarz@2026");
+await p.getByRole("button", { name: "Sign in" }).click();
+await p.waitForURL(/\/admin$/);
+await p.goto("http://localhost:3000/admin/cars/new", { waitUntil: "networkidle" });
+await p.getByLabel("Make *").fill("Tata");
+await p.getByLabel("Model *").fill("ar");
+await p.waitForTimeout(250);
+await p.screenshot({ path: `${out}/a-auto.png`, clip: { x: 232, y: 150, width: 1134, height: 450 } });
+await p.goto("http://localhost:3000/admin/leads", { waitUntil: "networkidle" });
+await p.screenshot({ path: `${out}/a-kanban.png`, clip: { x: 232, y: 130, width: 1134, height: 450 } });
+await b.close();

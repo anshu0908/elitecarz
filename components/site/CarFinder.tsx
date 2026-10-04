@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import { applyFilters, BUDGET_PRESETS, EMPTY_FILTERS, filtersToParams, type Filters } from "@/lib/filters";
 import { track } from "@/lib/client/analytics";
+import { Dropdown } from "@/components/ui/Dropdown";
 import type { PublicCar } from "@/lib/types";
 
 /** Hero car finder (BRIEF §17.2.2): budget / body type / brand / transmission → inventory with filters. */
@@ -57,14 +58,14 @@ export function CarFinder({ cars }: { cars: FinderCar[] }) {
 
 function Select({ label, value, onChange, options, placeholder }: { label: string; value: string; onChange: (v: string) => void; options: string[]; placeholder: string }) {
   return (
-    <label className="block rounded-xl bg-paper px-3 pb-1.5 pt-2 focus-within:ring-2 focus-within:ring-red">
-      <span className="block text-[0.7rem] font-bold uppercase tracking-wider text-muted">{label}</span>
-      <select value={value} onChange={(e) => onChange(e.target.value)} className="w-full cursor-pointer bg-transparent py-0.5 text-[0.95rem] font-semibold outline-none">
-        <option value="">{placeholder}</option>
-        {options.map((o) => (
-          <option key={o} value={o}>{o}</option>
-        ))}
-      </select>
-    </label>
+    <Dropdown
+      variant="finder"
+      label={label}
+      aria-label={label}
+      value={value}
+      onChange={onChange}
+      options={[{ value: "", label: placeholder }, ...options.map((o) => ({ value: o, label: o }))]}
+      placeholder={placeholder}
+    />
   );
 }

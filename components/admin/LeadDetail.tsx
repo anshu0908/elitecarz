@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { addNoteAction, updateLeadAction, updateValuationAction } from "@/app/admin/(panel)/leads/actions";
 import { toast } from "@/components/admin/Toast";
+import { Dropdown } from "@/components/ui/Dropdown";
 import { LEAD_STATUS_LABELS, LEAD_STATUSES } from "@/lib/constants";
 import { formatInr } from "@/lib/format";
 
@@ -58,28 +59,26 @@ export function LeadControls({
   return (
     <div className="card sticky top-20 space-y-4 p-5">
       <h2 className="font-extrabold">Pipeline</h2>
-      <label className="block">
-        <span className="label">Status</span>
-        <select className="field" value={status} disabled={!canEdit} onChange={(e) => setStatus(e.target.value)}>
-          {LEAD_STATUSES.map((s) => <option key={s} value={s}>{LEAD_STATUS_LABELS[s]}</option>)}
-        </select>
-      </label>
+      <div>
+        <span className="label" id="lead-status-l">Status</span>
+        <Dropdown aria-labelledby="lead-status-l" value={status} disabled={!canEdit} onChange={setStatus} options={LEAD_STATUSES.map((s) => ({ value: s, label: LEAD_STATUS_LABELS[s] }))} />
+      </div>
       {status === "lost" && (
-        <label className="block">
-          <span className="label">Why was it lost?</span>
-          <select className="field" value={lostReason} onChange={(e) => setLostReason(e.target.value)} autoFocus={focusLost}>
-            <option value="">Choose a reason</option>
-            {LOST_REASONS.map((r) => <option key={r}>{r}</option>)}
-          </select>
-        </label>
+        <div>
+          <span className="label" id="lead-lost-l">Why was it lost?</span>
+          <Dropdown aria-labelledby="lead-lost-l" value={lostReason} onChange={setLostReason} placeholder="Choose a reason" options={LOST_REASONS} />
+        </div>
       )}
-      <label className="block">
-        <span className="label">Assigned to</span>
-        <select className="field" value={assignee} disabled={!canEdit} onChange={(e) => setAssignee(e.target.value)}>
-          <option value="">Unassigned</option>
-          {users.filter((u) => canAssign || u.id === currentUserId || u.id === lead.assignedToId).map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
-        </select>
-      </label>
+      <div>
+        <span className="label" id="lead-assign-l">Assigned to</span>
+        <Dropdown
+          aria-labelledby="lead-assign-l"
+          value={assignee}
+          disabled={!canEdit}
+          onChange={setAssignee}
+          options={[{ value: "", label: "Unassigned" }, ...users.filter((u) => canAssign || u.id === currentUserId || u.id === lead.assignedToId).map((u) => ({ value: u.id, label: u.name }))]}
+        />
+      </div>
       <div>
         <label className="block">
           <span className="label">Next follow-up</span>
@@ -139,15 +138,21 @@ export function ValuationTool({ sellId, canEdit, initial }: { sellId: string; ca
         <label className="block"><span className="label">Offer from (₹)</span><input className="field" inputMode="numeric" value={min} disabled={!canEdit} onChange={(e) => setMin(e.target.value)} />{n(min) && <span className="hint block num">{formatInr(n(min)!)}</span>}</label>
         <label className="block"><span className="label">Offer up to (₹)</span><input className="field" inputMode="numeric" value={max} disabled={!canEdit} onChange={(e) => setMax(e.target.value)} />{n(max) && <span className="hint block num">{formatInr(n(max)!)}</span>}</label>
         <label className="block"><span className="label">Inspection slot</span><input type="datetime-local" className="field" value={slot} disabled={!canEdit} onChange={(e) => setSlot(e.target.value)} /></label>
-        <label className="block">
-          <span className="label">Outcome</span>
-          <select className="field" value={outcome} disabled={!canEdit} onChange={(e) => setOutcome(e.target.value)}>
-            <option value="">Open</option>
-            <option value="bought">Bought</option>
-            <option value="declined_by_us">Declined by us</option>
-            <option value="declined_by_seller">Seller declined offer</option>
-          </select>
-        </label>
+        <div>
+          <span className="label" id="sell-outcome-l">Outcome</span>
+          <Dropdown
+            aria-labelledby="sell-outcome-l"
+            value={outcome}
+            disabled={!canEdit}
+            onChange={setOutcome}
+            options={[
+              { value: "", label: "Open" },
+              { value: "bought", label: "Bought" },
+              { value: "declined_by_us", label: "Declined by us" },
+              { value: "declined_by_seller", label: "Seller declined offer" },
+            ]}
+          />
+        </div>
       </div>
       {canEdit && (
         <button

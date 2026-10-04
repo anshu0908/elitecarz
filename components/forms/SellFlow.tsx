@@ -7,6 +7,7 @@ import { useLeadSubmit } from "@/components/forms/useLeadSubmit";
 import { SELL_PREFILL_KEY } from "@/components/forms/SellMiniForm";
 import { WhatsappButton } from "@/components/site/ContactButtons";
 import { DemoTag } from "@/components/ui/Demo";
+import { Autocomplete } from "@/components/ui/Autocomplete";
 import { FUELS, KM_RANGES, REG_STATES, SELL_BRANDS, yearOptions } from "@/lib/constants";
 import { formatInr } from "@/lib/format";
 import { track } from "@/lib/client/analytics";
@@ -66,8 +67,8 @@ export function SellFlow({ modelsByMake, whatsapp }: { modelsByMake: Record<stri
     }
   }, []);
 
-  const set = (k: keyof typeof v) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const val = e.target.type === "checkbox" ? (e.target as HTMLInputElement).checked : e.target.value;
+  const set = (k: keyof typeof v) => (e: { target: { value: string; type: string; checked?: boolean } }) => {
+    const val = e.target.type === "checkbox" ? !!e.target.checked : e.target.value;
     setV((cur) => ({ ...cur, [k]: val }));
     setErrors((cur) => ({ ...cur, [k]: "" }));
   };
@@ -207,12 +208,19 @@ export function SellFlow({ modelsByMake, whatsapp }: { modelsByMake: Record<stri
           <TextField label="Registration number" required className="sm:col-span-2" value={v.regNumber} onChange={set("regNumber")} error={errors.regNumber || fieldError("sell.regNumber")} placeholder="DL 3C AB 1234" autoComplete="off" style={{ textTransform: "uppercase" }} />
           <SelectField label="Brand" required value={v.make} onChange={set("make")} options={SELL_BRANDS} placeholder="Choose brand" error={errors.make || fieldError("sell.make")} />
           <div>
-            <TextField label="Model" required value={v.model} onChange={set("model")} list="sell-models" placeholder={models[0] ? `e.g. ${models[0]}` : "e.g. Nexon"} error={errors.model || fieldError("sell.model")} />
-            <datalist id="sell-models">
-              {models.map((m) => (
-                <option key={m} value={m} />
-              ))}
-            </datalist>
+            <label htmlFor="sell-model" className="label">
+              Model<span aria-hidden className="text-red"> *</span>
+            </label>
+            <Autocomplete
+              id="sell-model"
+              value={v.model}
+              onChange={(x) => set("model")({ target: { value: x, type: "text" } })}
+              suggestions={models}
+              placeholder={models[0] ? `e.g. ${models[0]}` : "e.g. Nexon"}
+              invalid={!!(errors.model || fieldError("sell.model"))}
+              describedBy={errors.model || fieldError("sell.model") ? "sell-model-err" : undefined}
+            />
+            {(errors.model || fieldError("sell.model")) && <p id="sell-model-err" className="error-text">{errors.model || fieldError("sell.model")}</p>}
           </div>
           <SelectField label="Manufacturing year" required value={v.mfgYear} onChange={set("mfgYear")} options={years.map(String)} placeholder="Choose year" error={errors.mfgYear || fieldError("sell.mfgYear")} />
           <SelectField label="Kilometres driven" required value={v.kmRange} onChange={set("kmRange")} options={KM_RANGES} placeholder="Choose range" error={errors.kmRange || fieldError("sell.kmRange")} />
