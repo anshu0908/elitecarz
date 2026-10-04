@@ -106,13 +106,18 @@ export function toPublicCar(row: PublicCarRow): PublicCar {
 
 /** All cars visible on the public site (published, reserved, and recently sold). */
 export const getPublicCars = cache(async (): Promise<PublicCar[]> => {
-  const rows = await db.car.findMany({
-    where: publicCarWhere,
-    select: publicCarSelect,
-    orderBy: [{ publishedAt: "desc" }],
-  });
-  // List views only need the cover photo — drop the gallery to keep page payloads small.
-  return rows.map((r) => ({ ...toPublicCar(r), images: [] }));
+  try {
+    const rows = await db.car.findMany({
+      where: publicCarWhere,
+      select: publicCarSelect,
+      orderBy: [{ publishedAt: "desc" }],
+    });
+    // List views only need the cover photo — drop the gallery to keep page payloads small.
+    return rows.map((r) => ({ ...toPublicCar(r), images: [] }));
+  } catch (err) {
+    console.warn("getPublicCars: DB query failed:", err instanceof Error ? err.message : err);
+    return [];
+  }
 });
 
 export const getPublicCarBySlug = cache(async (slug: string): Promise<PublicCarDetail | null> => loadDetail({ ...publicCarWhere, slug }));
@@ -123,30 +128,35 @@ export async function getCarDetailForPreview(id: string): Promise<PublicCarDetai
 }
 
 async function loadDetail(where: Prisma.CarWhereInput): Promise<PublicCarDetail | null> {
-  const row = await db.car.findFirst({
-    where,
-    select: {
-      ...publicCarSelect,
-      documents: { select: { type: true, verified: true, fileUrl: true, isPublic: true } },
-      inspections: {
-        take: 1,
-        orderBy: { inspectedOn: "desc" },
-        select: { inspectedBy: true, inspectedOn: true, summary: true, isDemo: true, items: { select: { section: true, item: true, result: true, note: true } } },
+  try {
+    const row = await db.car.findFirst({
+      where,
+      select: {
+        ...publicCarSelect,
+        documents: { select: { type: true, verified: true, fileUrl: true, isPublic: true } },
+        inspections: {
+          take: 1,
+          orderBy: { inspectedOn: "desc" },
+          select: { inspectedBy: true, inspectedOn: true, summary: true, isDemo: true, items: { select: { section: true, item: true, result: true, note: true } } },
+        },
+        priceHistory: { take: 1, orderBy: { changedAt: "desc" }, select: { oldPrice: true, newPrice: true, changedAt: true } },
       },
-      priceHistory: { take: 1, orderBy: { changedAt: "desc" }, select: { oldPrice: true, newPrice: true, changedAt: true } },
-    },
-  });
-  if (!row) return null;
-  const { documents, inspections, priceHistory, ...rest } = row;
+    });
+    if (!row) return null;
+    const { documents, inspections, priceHistory, ...rest } = row;
   const insp = inspections[0];
   const drop = priceHistory[0];
-  return {
-    ...toPublicCar(rest),
-    // Only the verified flag is public; files are exposed only when explicitly marked public.
-    documents: documents.map((d) => ({ type: d.type, verified: d.verified, fileUrl: d.isPublic ? d.fileUrl : null })),
-    inspection: insp
-      ? { inspectedBy: insp.inspectedBy, inspectedOn: insp.inspectedOn?.toISOString() ?? null, summary: insp.summary, isDemo: insp.isDemo, items: insp.items }
-      : null,
-    priceDrop: drop && drop.newPrice < drop.oldPrice ? { oldPrice: drop.oldPrice, newPrice: drop.newPrice, changedAt: drop.changedAt.toISOString() } : null,
-  };
+    return {
+      ...toPublicCar(rest),
+      // Only the verified flag is public; files are exposed only when explicitly marked public.
+      documents: documents.map((d) => ({ type: d.type, verified: d.verified, fileUrl: d.isPublic ? d.fileUrl : null })),
+      inspection: insp
+        ? { inspectedBy: insp.inspectedBy, inspectedOn: insp.inspectedOn?.toISOString() ?? null, summary: insp.summary, isDemo: insp.isDemo, items: insp.items }
+        : null,
+      priceDrop: drop && drop.newPrice < drop.oldPrice ? { oldPrice: drop.oldPrice, newPrice: drop.newPrice, changedAt: drop.changedAt.toISOString() } : null,
+    };
+  } catch (err) {
+    console.warn("loadDetail: DB query failed:", err instanceof Error ? err.message : err);
+    return null;
+  }
 }

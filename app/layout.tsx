@@ -5,8 +5,10 @@ import "./globals.css";
 const archivo = Archivo({ subsets: ["latin"], axes: ["wdth"], variable: "--font-archivo", display: "swap" });
 const instrument = Instrument_Sans({ subsets: ["latin"], axes: ["wdth"], variable: "--font-instrument", display: "swap" });
 
+import { SITE_URL } from "@/lib/seo";
+
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
+  metadataBase: new URL(SITE_URL),
   title: { default: "EliteCarz — Fixed-price used cars in Naraina, Delhi", template: "%s | EliteCarz Delhi" },
   description:
     "Inspected pre-owned cars at one fixed price, RC transfer included. Showroom in Naraina, New Delhi. Rated 4.7★ by 118 Google reviewers.",

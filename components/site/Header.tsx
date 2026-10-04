@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Search } from "lucide-react";
+import { Search, Shield } from "lucide-react";
 import { Logo } from "@/components/site/Logo";
 import { MobileMenu } from "@/components/site/MobileMenu";
 import { CallButton, WhatsappButton } from "@/components/site/ContactButtons";
@@ -30,11 +30,23 @@ export function Header({ settings }: { settings: PublicSettings }) {
             </Link>
           ))}
         </nav>
-        <div className="ml-auto flex items-center gap-1.5">
+        <div className="ml-auto flex items-center gap-1.5 sm:gap-2">
           <Link href="/cars" aria-label="Search cars" className="grid size-10 place-items-center rounded-lg text-white/80 hover:text-white lg:hidden">
             <Search className="size-5" aria-hidden />
           </Link>
           <ShortlistLink />
+          <Link
+            href="/admin"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-amber-500/50 bg-amber-500/10 px-2.5 py-1.5 text-xs font-semibold text-amber-300 transition hover:border-amber-400 hover:bg-amber-500/20"
+            title="Open Admin Panel (Demo Review)"
+          >
+            <Shield className="size-3.5 text-amber-400" aria-hidden />
+            <span className="hidden sm:inline">Admin Panel</span>
+            <span className="sm:hidden">Admin</span>
+            <span className="rounded bg-amber-400/20 px-1 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-200">
+              Demo
+            </span>
+          </Link>
           <CallButton phone={b.phone} location="header" label={formatPhone(b.phone)} className="btn btn-sm btn-ghost-dark hidden xl:inline-flex" />
           <WhatsappButton
             whatsapp={b.whatsapp}

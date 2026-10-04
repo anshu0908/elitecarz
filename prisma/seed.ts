@@ -10,7 +10,15 @@ import { INSPECTION_TEMPLATE } from "../lib/inspection";
 import { DEFAULT_SETTINGS } from "../lib/settings-defaults";
 import { carSlug, maskRegNumber } from "../lib/slug";
 
-const db = new PrismaClient({ adapter: new PrismaLibSql({ url: process.env.DATABASE_URL ?? "file:./prisma/dev.db", authToken: process.env.DATABASE_AUTH_TOKEN || undefined }) });
+import { sanitizeLibsqlUrl } from "../lib/db-url";
+
+const { url: seedDbUrl, authToken: seedAuthToken } = sanitizeLibsqlUrl(process.env.DATABASE_URL);
+const db = new PrismaClient({
+  adapter: new PrismaLibSql({
+    url: seedDbUrl,
+    authToken: process.env.DATABASE_AUTH_TOKEN || seedAuthToken || undefined,
+  }),
+});
 
 type SourceCar = { handle: string; title: string; price: number; createdAt: string; images: string[]; detail: Record<string, string> };
 const source: { cars: SourceCar[] } = JSON.parse(readFileSync(new URL("../data/source-cars.json", import.meta.url), "utf8"));

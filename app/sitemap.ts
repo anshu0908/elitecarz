@@ -6,11 +6,19 @@ import { slugify } from "@/lib/slug";
 import { abs } from "@/lib/seo";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [cars, makes, pages] = await Promise.all([
-    db.car.findMany({ where: publicCarWhere, select: { slug: true, updatedAt: true, status: true } }),
-    db.make.findMany({ where: { cars: { some: publicCarWhere } }, select: { name: true } }),
-    db.page.findMany({ select: { slug: true } }),
-  ]);
+  let cars: { slug: string; updatedAt: Date; status: string }[] = [];
+  let makes: { name: string }[] = [];
+  let pages: { slug: string }[] = [];
+
+  try {
+    [cars, makes, pages] = await Promise.all([
+      db.car.findMany({ where: publicCarWhere, select: { slug: true, updatedAt: true, status: true } }),
+      db.make.findMany({ where: { cars: { some: publicCarWhere } }, select: { name: true } }),
+      db.page.findMany({ select: { slug: true } }),
+    ]);
+  } catch (err) {
+    console.warn("sitemap: DB query failed, generating sitemap for fixed routes:", err instanceof Error ? err.message : err);
+  }
   const now = new Date();
   const fixed = ["/", "/cars", "/sell-your-car", "/finance", "/warranty", "/reviews", "/about", "/contact"].map((p) => ({
     url: abs(p),

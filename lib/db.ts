@@ -2,11 +2,19 @@ import "server-only";
 import { PrismaLibSql } from "@prisma/adapter-libsql";
 import { PrismaClient } from "@/lib/generated/prisma/client";
 
+import { sanitizeLibsqlUrl } from "@/lib/db-url";
+
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
 function createClient() {
+  const { url, authToken } = sanitizeLibsqlUrl(process.env.DATABASE_URL);
+  const token = process.env.DATABASE_AUTH_TOKEN || authToken;
+
   // Local: file:./prisma/dev.db. Deployed: a Turso libsql:// URL plus its auth token.
-  const adapter = new PrismaLibSql({ url: process.env.DATABASE_URL ?? "file:./prisma/dev.db", authToken: process.env.DATABASE_AUTH_TOKEN || undefined });
+  const adapter = new PrismaLibSql({
+    url,
+    authToken: token || undefined,
+  });
   return new PrismaClient({ adapter });
 }
 

@@ -3,7 +3,8 @@ import type { PublicSettings } from "@/lib/settings";
 import type { PublicCar } from "@/lib/types";
 import { priceBreakup } from "@/lib/price";
 
-export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000").replace(/\/$/, "");
+const rawUrl = process.env.NEXT_PUBLIC_SITE_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+export const SITE_URL = rawUrl.replace(/\/$/, "");
 export const abs = (path: string) => `${SITE_URL}${path.startsWith("/") ? path : `/${path}`}`;
 
 export function autoDealerJsonLd(s: PublicSettings) {

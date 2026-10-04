@@ -15,7 +15,10 @@ export const metadata: Metadata = {
 
 export default async function SellPage() {
   const [makes, settings, faqs] = await Promise.all([
-    db.make.findMany({ select: { name: true, models: { select: { name: true }, orderBy: { name: "asc" } } } }),
+    db.make.findMany({ select: { name: true, models: { select: { name: true }, orderBy: { name: "asc" } } } }).catch((err) => {
+      console.warn("SellPage: Failed to fetch makes from DB:", err instanceof Error ? err.message : err);
+      return [];
+    }),
     getPublicSettings(),
     getFaqs(),
   ]);
