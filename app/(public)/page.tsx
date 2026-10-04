@@ -242,6 +242,9 @@ export default async function HomePage() {
         <section aria-labelledby="faq" className="scroll-reveal cv-auto mx-auto max-w-3xl">
           <SectionHeading id="faq" eyebrow="Questions" title="Straight answers" />
           <FaqList faqs={faqs.slice(0, 6)} />
+          <div className="mt-6 text-center">
+            <Link href="/faq" className="btn btn-outline text-sm font-semibold">View all questions & answers →</Link>
+          </div>
         </section>
       </div>
 

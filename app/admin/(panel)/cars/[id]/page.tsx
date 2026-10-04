@@ -18,11 +18,18 @@ export default async function EditCarPage({ params }: PageProps<"/admin/cars/[id
   const viewCost = can(user.role, "cars.viewCost");
   const [car, master] = await Promise.all([loadCarForm(id, viewCost), loadMasterData()]);
   if (!car) notFound();
-  const [prices, audits, leadCount] = await Promise.all([
-    db.priceHistory.findMany({ where: { carId: id }, orderBy: { changedAt: "desc" }, take: 20, include: { changedBy: { select: { name: true } } } }),
-    db.auditLog.findMany({ where: { entity: "car", entityId: id }, orderBy: { createdAt: "desc" }, take: 30, include: { user: { select: { name: true } } } }),
-    db.lead.count({ where: { carId: id } }),
-  ]);
+  let prices: any[] = [];
+  let audits: any[] = [];
+  let leadCount = 0;
+  try {
+    [prices, audits, leadCount] = await Promise.all([
+      db.priceHistory.findMany({ where: { carId: id }, orderBy: { changedAt: "desc" }, take: 20, include: { changedBy: { select: { name: true } } } }),
+      db.auditLog.findMany({ where: { entity: "car", entityId: id }, orderBy: { createdAt: "desc" }, take: 30, include: { user: { select: { name: true } } } }),
+      db.lead.count({ where: { carId: id } }),
+    ]);
+  } catch (err) {
+    console.warn("EditCarPage activity query error:", err);
+  }
   const canEdit = can(user.role, "cars.edit") && (can(user.role, "cars.publish") || car.status === "draft");
 
   return (

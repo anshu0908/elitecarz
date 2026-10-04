@@ -164,9 +164,14 @@ async function loadDetail(where: Prisma.CarWhereInput): Promise<PublicCarDetail 
     console.warn("loadDetail: DB query failed:", err instanceof Error ? err.message : err);
   }
 
-  // Fallback to catalog data by slug if not found in DB
+  // Fallback to catalog data by slug or id if not found in DB
   if (typeof where.slug === "string") {
     return getCatalogCarDetailFallback(where.slug);
+  }
+  if (typeof where.id === "string") {
+    const list = getCatalogCarsFallback();
+    const found = list.find((c) => c.id === where.id || c.slug === where.id);
+    if (found) return getCatalogCarDetailFallback(found.slug);
   }
   return null;
 }

@@ -13,34 +13,39 @@ export default async function AdminCarsPage({ searchParams }: PageProps<"/admin/
   const user = await requirePageUser("cars.view");
   const sp = await searchParams;
   const viewCost = can(user.role, "cars.viewCost");
-  const cars = await db.car.findMany({
-    where: { deletedAt: null },
-    orderBy: { updatedAt: "desc" },
-    select: {
-      id: true,
-      slug: true,
-      stockNo: true,
-      title: true,
-      status: true,
-      year: true,
-      fuel: true,
-      transmission: true,
-      kmDriven: true,
-      priceInr: true,
-      featured: true,
-      badge: true,
-      views: true,
-      regNumber: true,
-      createdAt: true,
-      publishedAt: true,
-      updatedAt: true,
-      purchasePriceInr: viewCost,
-      refurbCostInr: viewCost,
-      make: { select: { name: true } },
-      images: { where: { isHero: true }, select: { url: true }, take: 1 },
-      _count: { select: { images: true, leads: true } },
-    },
-  });
+  let cars: any[] = [];
+  try {
+    cars = await db.car.findMany({
+      where: { deletedAt: null },
+      orderBy: { updatedAt: "desc" },
+      select: {
+        id: true,
+        slug: true,
+        stockNo: true,
+        title: true,
+        status: true,
+        year: true,
+        fuel: true,
+        transmission: true,
+        kmDriven: true,
+        priceInr: true,
+        featured: true,
+        badge: true,
+        views: true,
+        regNumber: true,
+        createdAt: true,
+        publishedAt: true,
+        updatedAt: true,
+        purchasePriceInr: viewCost,
+        refurbCostInr: viewCost,
+        make: { select: { name: true } },
+        images: { where: { isHero: true }, select: { url: true }, take: 1 },
+        _count: { select: { images: true, leads: true } },
+      },
+    });
+  } catch (err) {
+    console.warn("AdminCarsPage: DB query failed:", err);
+  }
 
   const hasDbCars = cars.length > 0;
   const rows: AdminCarRow[] = hasDbCars

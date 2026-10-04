@@ -20,13 +20,22 @@ export async function proxy(req: NextRequest) {
     res.cookies.delete(SESSION_COOKIE);
     return res;
   }
-  if (isLogin) return NextResponse.redirect(new URL("/admin", req.url));
+  if (isLogin) {
+    // If the request has an explicit redirect query, error or logout flag, don't auto-redirect back to /admin
+    if (req.nextUrl.searchParams.has("error") || req.nextUrl.searchParams.has("logout") || req.nextUrl.searchParams.has("force")) {
+      const res = NextResponse.next();
+      res.cookies.delete(SESSION_COOKIE);
+      return res;
+    }
+    return NextResponse.redirect(new URL("/admin", req.url));
+  }
 
   const res = NextResponse.next();
   const token = await signSession({ uid: session.uid, role: session.role, name: session.name }, session.iat0);
+  const isHttps = req.nextUrl.protocol === "https:" || req.headers.get("x-forwarded-proto") === "https";
   res.cookies.set(SESSION_COOKIE, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: isHttps,
     sameSite: "lax",
     path: "/",
     maxAge: SESSION_IDLE_S,

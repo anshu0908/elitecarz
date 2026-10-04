@@ -41,8 +41,9 @@ export async function fallbackPathFor(carId: string): Promise<string> {
 }
 
 export async function saveCar(user: CurrentUser, id: string | null, data: CarFormData) {
-  const existing = id ? await db.car.findFirst({ where: { id, deletedAt: null } }) : null;
-  if (id && !existing) throw new ActionError("This car no longer exists (it may be in Trash).");
+  const isFallbackCar = id?.startsWith("fallback-");
+  const existing = (id && !isFallbackCar) ? await db.car.findFirst({ where: { id, deletedAt: null } }) : null;
+  if (id && !existing && !isFallbackCar) throw new ActionError("This car no longer exists (it may be in Trash).");
 
   // Sales can only create/edit drafts (BRIEF §16.1).
   if (!can(user.role, "cars.publish")) {

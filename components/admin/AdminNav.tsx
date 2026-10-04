@@ -2,7 +2,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CalendarDays, Car, ExternalLink, Inbox, LayoutDashboard, LogOut, Menu, ScrollText, Settings, Trash2, Users, X } from "lucide-react";
 import { logout } from "@/app/admin/login/actions";
 import { can, ROLE_LABELS, type Capability } from "@/lib/permissions";
@@ -22,6 +22,38 @@ const ITEMS: { href: string; label: string; icon: typeof Car; cap: Capability; e
 export function AdminNav({ user, newLeads }: { user: CurrentUser; newLeads: number }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [lastPath, setLastPath] = useState(pathname);
+
+  // Close drawer if route changes
+  if (pathname !== lastPath) {
+    setLastPath(pathname);
+    setOpen(false);
+  }
+
+  // Prevent background page from moving or scrolling when mobile menu is open
+  useEffect(() => {
+    if (!open) return;
+    const originalOverflow = document.body.style.overflow;
+    const originalTouchAction = document.body.style.touchAction;
+    const originalOverscroll = document.body.style.overscrollBehavior;
+
+    document.body.style.overflow = "hidden";
+    document.body.style.touchAction = "none";
+    document.body.style.overscrollBehavior = "none";
+
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      document.body.style.touchAction = originalTouchAction;
+      document.body.style.overscrollBehavior = originalOverscroll;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
   const items = ITEMS.filter((i) => can(user.role, i.cap) || (i.cap === "leads.viewOwn" && can(user.role, "leads.viewAll")));
 
   const nav = (
@@ -34,15 +66,23 @@ export function AdminNav({ user, newLeads }: { user: CurrentUser; newLeads: numb
             href={href}
             onClick={() => setOpen(false)}
             aria-current={active ? "page" : undefined}
-            className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold transition ${active ? "bg-white/10 text-white" : "text-white/70 hover:bg-white/5 hover:text-white"}`}
+            className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold transition ${
+              active ? "bg-white/10 text-white" : "text-white/70 hover:bg-white/5 hover:text-white"
+            }`}
           >
             <Icon className="size-[18px]" aria-hidden />
             <span className="flex-1">{label}</span>
-            {href === "/admin/leads" && newLeads > 0 && <span className="num rounded-full bg-red px-1.5 text-xs leading-5 text-white">{newLeads}</span>}
+            {href === "/admin/leads" && newLeads > 0 && (
+              <span className="num rounded-full bg-red px-1.5 text-xs leading-5 text-white">{newLeads}</span>
+            )}
           </Link>
         );
       })}
-      <Link href="/" target="_blank" className="mt-4 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-white/60 hover:text-white">
+      <Link
+        href="/"
+        target="_blank"
+        className="mt-4 flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-white/60 hover:text-white"
+      >
         <ExternalLink className="size-[18px]" aria-hidden /> View website
       </Link>
       <div className="mt-auto border-t border-ink-line px-3 pt-4">
@@ -59,30 +99,75 @@ export function AdminNav({ user, newLeads }: { user: CurrentUser; newLeads: numb
 
   return (
     <>
+      {/* Mobile Top Header */}
       <header className="dark-surface sticky top-0 z-40 flex h-14 items-center gap-3 bg-ink px-4 text-white lg:hidden">
-        <button type="button" onClick={() => setOpen(true)} className="grid size-10 place-items-center" aria-label="Open admin menu" aria-expanded={open}>
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="grid size-10 place-items-center rounded-lg hover:bg-white/10"
+          aria-label="Open admin menu"
+          aria-expanded={open}
+        >
           <Menu className="size-6" aria-hidden />
         </button>
         <Image src="/logo-elitecarz.png" alt="EliteCarz" width={1160} height={192} className="h-4 w-auto" />
         <span className="text-xs text-white/60">Admin</span>
         <Link href="/admin/cars/new?quick=1" className="btn btn-red btn-sm ml-auto">+ Car</Link>
       </header>
+
+      {/* Mobile Navigation Drawer with Strict Background Scroll Lock */}
       {open && (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          <button type="button" className="absolute inset-0 bg-black/60" aria-label="Close menu" onClick={() => setOpen(false)} />
-          <div className="dark-surface relative flex h-full w-72 flex-col bg-ink">
-            <div className="flex h-14 items-center justify-between px-4">
-              <Image src="/logo-elitecarz.png" alt="EliteCarz" width={1160} height={192} className="h-4 w-auto" />
-              <button type="button" onClick={() => setOpen(false)} className="grid size-10 place-items-center text-white" aria-label="Close menu">
+        <div
+          className="fixed inset-0 z-50 flex lg:hidden"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Admin Navigation Menu"
+        >
+          {/* Backdrop with touchmove prevention */}
+          <div
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm transition-opacity"
+            aria-hidden="true"
+            onClick={() => setOpen(false)}
+            onTouchMove={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+          />
+
+          {/* Drawer content: strictly isolated scroll container */}
+          <div
+            className="dark-surface relative z-10 flex h-dvh max-h-dvh w-72 max-w-[85vw] flex-col bg-ink shadow-2xl overscroll-contain animate-in slide-in-from-left duration-200"
+            style={{ touchAction: "pan-y", overscrollBehavior: "contain" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex h-14 shrink-0 items-center justify-between border-b border-ink-line px-4">
+              <div className="flex items-center gap-2">
+                <Image src="/logo-elitecarz.png" alt="EliteCarz" width={1160} height={192} className="h-4 w-auto" />
+                <span className="text-[10px] font-bold uppercase tracking-wider text-white/50">Admin</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setOpen(false)}
+                className="grid size-9 place-items-center rounded-lg text-white/80 hover:bg-white/10 hover:text-white"
+                aria-label="Close menu"
+              >
                 <X className="size-5" aria-hidden />
               </button>
             </div>
-            {nav}
+            
+            <div
+              className="flex-1 overflow-y-auto overscroll-contain"
+              style={{ touchAction: "pan-y", overscrollBehavior: "contain" }}
+            >
+              {nav}
+            </div>
           </div>
         </div>
       )}
-      <aside className="dark-surface sticky top-0 hidden h-dvh flex-col bg-ink lg:flex">
-        <div className="flex h-16 items-center gap-2 px-6">
+
+      {/* Desktop Persistent Sidebar */}
+      <aside className="dark-surface sticky top-0 hidden h-dvh flex-col bg-ink lg:flex overflow-y-auto overscroll-contain">
+        <div className="flex h-16 shrink-0 items-center gap-2 px-6">
           <Image src="/logo-elitecarz.png" alt="EliteCarz" width={1160} height={192} className="h-[18px] w-auto" />
           <span className="text-xs font-semibold text-white/50">ADMIN</span>
         </div>

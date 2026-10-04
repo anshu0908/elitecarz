@@ -16,18 +16,19 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
   try {
     // Re-read the user so deactivation and role changes take effect immediately.
     const user = await db.user.findUnique({ where: { id: session.uid }, select: { id: true, name: true, email: true, role: true, isActive: true } });
-    if (user && user.isActive) {
+    if (user) {
+      if (!user.isActive) return null;
       return { id: user.id, name: user.name, email: user.email, role: user.role as Role };
     }
-  } catch {
-    /* ignore DB lookup error on unseeded DB */
+  } catch (err) {
+    console.warn("getCurrentUser: DB user lookup failed, falling back to session payload:", err instanceof Error ? err.message : err);
   }
 
-  // Virtual or demo reviewer session support
-  if (session.uid.startsWith("demo-") || session.name.includes("Demo")) {
+  // Session fallback (virtual demo, unseeded DB, or transient DB error)
+  if (session.uid && session.role) {
     return {
       id: session.uid,
-      name: session.name,
+      name: session.name || "Staff Member",
       email: `${session.role}@elitecarz.demo`,
       role: session.role as Role,
     };

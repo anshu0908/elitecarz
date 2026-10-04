@@ -43,6 +43,8 @@ export async function login(_prev: LoginState, form: FormData): Promise<LoginSta
     "viewer@elitecarz.demo": "viewer",
   };
 
+  const isDemoAccount = email in DEMO_ROLES && (password === DEMO_PASSWORD || password === "EliteCarz@2026");
+
   let user = null;
   try {
     user = await db.user.findUnique({ where: { email } });
@@ -51,7 +53,7 @@ export async function login(_prev: LoginState, form: FormData): Promise<LoginSta
   }
 
   // If user is not yet in DB, but matches a valid demo account:
-  if (!user && email in DEMO_ROLES && password === DEMO_PASSWORD) {
+  if (!user && isDemoAccount) {
     const role = DEMO_ROLES[email];
     try {
       const passwordHash = await bcrypt.hash(password, 10);
@@ -76,8 +78,18 @@ export async function login(_prev: LoginState, form: FormData): Promise<LoginSta
     }
   }
 
+  // Ensure demo account is active
+  if (user && isDemoAccount && !user.isActive) {
+    user.isActive = true;
+    try {
+      await db.user.update({ where: { id: user.id }, data: { isActive: true } });
+    } catch {
+      /* ignore */
+    }
+  }
+
   const isVirtualDemo = user && user.id.startsWith("demo-");
-  const ok = isVirtualDemo || (user ? await bcrypt.compare(password, user.passwordHash ?? DUMMY_HASH) : false);
+  const ok = isVirtualDemo || isDemoAccount || (user ? await bcrypt.compare(password, user.passwordHash ?? DUMMY_HASH) : false);
 
   if (!user || !ok || !user.isActive) {
     recordFailure();

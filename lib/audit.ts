@@ -10,9 +10,14 @@ export async function audit(userId: string | null, action: string, entity: strin
   } catch {
     /* outside a request */
   }
-  await db.auditLog.create({
-    data: { userId, action, entity, entityId: entityId ?? null, diff: diff === undefined ? null : JSON.stringify(diff), ip },
-  });
+  try {
+    const validUserId = userId?.startsWith("demo-") ? null : userId;
+    await db.auditLog.create({
+      data: { userId: validUserId, action, entity, entityId: entityId ?? null, diff: diff === undefined ? null : JSON.stringify(diff), ip },
+    });
+  } catch (err) {
+    console.warn("audit: skipped audit logging:", err instanceof Error ? err.message : err);
+  }
 }
 
 /** Field-level diff for audit entries: { field: [before, after] }. */

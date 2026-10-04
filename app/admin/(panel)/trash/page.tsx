@@ -8,12 +8,18 @@ export const metadata: Metadata = { title: "Trash" };
 
 export default async function TrashPage() {
   const user = await requirePageUser("cars.delete");
-  const cars = await db.car.findMany({
-    where: { deletedAt: { not: null } },
-    orderBy: { deletedAt: "desc" },
-    select: { id: true, title: true, stockNo: true, slug: true, deletedAt: true, priceInr: true },
-  });
-  const redirects = await db.redirect.findMany({ where: { fromPath: { in: cars.map((c) => `/cars/${c.slug}`) } } });
+  let cars: any[] = [];
+  let redirects: any[] = [];
+  try {
+    cars = await db.car.findMany({
+      where: { deletedAt: { not: null } },
+      orderBy: { deletedAt: "desc" },
+      select: { id: true, title: true, stockNo: true, slug: true, deletedAt: true, priceInr: true },
+    });
+    redirects = await db.redirect.findMany({ where: { fromPath: { in: cars.map((c) => `/cars/${c.slug}`) } } });
+  } catch (err) {
+    console.warn("TrashPage: db query failed:", err);
+  }
   return (
     <div>
       <h1 className="text-2xl font-extrabold">Trash</h1>

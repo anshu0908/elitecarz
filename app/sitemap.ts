@@ -20,7 +20,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     console.warn("sitemap: DB query failed, generating sitemap for fixed routes:", err instanceof Error ? err.message : err);
   }
   const now = new Date();
-  const fixed = ["/", "/cars", "/sell-your-car", "/finance", "/warranty", "/reviews", "/about", "/contact"].map((p) => ({
+  const fixed = ["/", "/cars", "/sell-your-car", "/finance", "/warranty", "/reviews", "/faq", "/about", "/contact"].map((p) => ({
     url: abs(p),
     lastModified: now,
     changeFrequency: p === "/" || p === "/cars" ? ("daily" as const) : ("monthly" as const),

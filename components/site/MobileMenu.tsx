@@ -18,14 +18,24 @@ export function MobileMenu({ nav, phone }: { nav: { href: string; label: string 
 
   useEffect(() => {
     if (!open) return;
+    const originalOverflow = document.body.style.overflow;
+    const originalTouchAction = document.body.style.touchAction;
+    const originalOverscroll = document.body.style.overscrollBehavior;
+
+    document.body.style.overflow = "hidden";
+    document.body.style.touchAction = "none";
+    document.body.style.overscrollBehavior = "none";
+
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setOpen(false);
     };
     document.addEventListener("keydown", onKey);
-    document.body.style.overflow = "hidden";
+
     return () => {
+      document.body.style.overflow = originalOverflow;
+      document.body.style.touchAction = originalTouchAction;
+      document.body.style.overscrollBehavior = originalOverscroll;
       document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = "";
     };
   }, [open]);
 
@@ -42,7 +52,11 @@ export function MobileMenu({ nav, phone }: { nav: { href: string; label: string 
         {open ? <X className="size-5" aria-hidden /> : <Menu className="size-5" aria-hidden />}
       </button>
       {open && (
-        <div id="mobile-menu" className="fixed inset-x-0 bottom-0 top-16 z-50 overflow-y-auto bg-ink px-4 pb-10 pt-2">
+        <div
+          id="mobile-menu"
+          className="fixed inset-x-0 bottom-0 top-16 z-50 overflow-y-auto overscroll-contain bg-ink px-4 pb-10 pt-2"
+          style={{ touchAction: "pan-y", overscrollBehavior: "contain" }}
+        >
           <nav aria-label="Mobile">
             <ul className="divide-y divide-ink-line">
               {[...nav, { href: "/shortlist", label: "Shortlist" }].map((n) => (

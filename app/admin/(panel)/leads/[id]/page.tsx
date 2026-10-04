@@ -21,22 +21,70 @@ export default async function LeadPage({ params, searchParams }: PageProps<"/adm
   const user = await requirePageUser();
   const { id } = await params;
   const { lost } = await searchParams;
-  const lead = await db.lead.findFirst({
-    where: { id, ...leadScope(user) },
-    include: {
-      car: { select: { id: true, title: true, slug: true, priceInr: true, stockNo: true } },
-      assignedTo: { select: { name: true } },
-      notes: { orderBy: { createdAt: "desc" }, include: { user: { select: { name: true } } } },
-      sellRequests: true,
-      bookings: { orderBy: { slot: "asc" } },
-    },
-  });
+  let lead: any = null;
+  try {
+    lead = await db.lead.findFirst({
+      where: { id, ...leadScope(user) },
+      include: {
+        car: { select: { id: true, title: true, slug: true, priceInr: true, stockNo: true } },
+        assignedTo: { select: { name: true } },
+        notes: { orderBy: { createdAt: "desc" }, include: { user: { select: { name: true } } } },
+        sellRequests: true,
+        bookings: { orderBy: { slot: "asc" } },
+      },
+    });
+  } catch (err) {
+    console.warn("LeadPage: db query failed:", err);
+  }
+
+  if (!lead && id.startsWith("lead-demo-")) {
+    lead = {
+      id,
+      name: "Rohit Malhotra (DEMO)",
+      status: "new",
+      type: "enquiry",
+      phone: "9810000001",
+      whatsapp: "9810000001",
+      email: "rohit.demo@gmail.com",
+      city: "New Delhi",
+      source: "website",
+      pageUrl: "/cars/2023-mg-hector-plus-sharp-pro-cvt",
+      createdAt: new Date(),
+      nextFollowupAt: new Date(Date.now() + 4 * 3600_000),
+      lostReason: null,
+      message: "Is the Hector available for a test drive this Saturday?",
+      payload: JSON.stringify({ demo: true }),
+      utm: JSON.stringify({ utm_source: "google", utm_medium: "cpc" }),
+      car: { id: "fallback-1", title: "2023 MG Hector Plus Sharp Pro CVT", slug: "2023-mg-hector-plus-sharp-pro-cvt", priceInr: 1775000, stockNo: "EC-0001" },
+      assignedTo: { name: "Sales (Demo)" },
+      notes: [{ createdAt: new Date(), user: { name: "Sales (Demo)" }, note: "Customer contacted via WhatsApp, interested in viewing this Saturday." }],
+      sellRequests: [],
+      bookings: [{ id: "booking-demo-1", kind: "test_drive", slot: new Date(Date.now() + 48 * 3600_000), status: "confirmed", tokenAmount: null, paymentStatus: null }],
+    };
+  }
+
   if (!lead) notFound();
-  const [users, audits, others] = await Promise.all([
-    db.user.findMany({ where: { isActive: true }, select: { id: true, name: true } }),
-    db.auditLog.findMany({ where: { entity: "lead", entityId: id }, orderBy: { createdAt: "desc" }, include: { user: { select: { name: true } } } }),
-    lead.phone ? db.lead.findMany({ where: { phone: lead.phone, NOT: { id }, ...leadScope(user) }, select: { id: true, type: true, createdAt: true }, orderBy: { createdAt: "desc" } }) : [],
-  ]);
+
+  let users: any[] = [];
+  let audits: any[] = [];
+  let others: any[] = [];
+  try {
+    [users, audits, others] = await Promise.all([
+      db.user.findMany({ where: { isActive: true }, select: { id: true, name: true } }),
+      db.auditLog.findMany({ where: { entity: "lead", entityId: id }, orderBy: { createdAt: "desc" }, include: { user: { select: { name: true } } } }),
+      lead.phone ? db.lead.findMany({ where: { phone: lead.phone, NOT: { id }, ...leadScope(user) }, select: { id: true, type: true, createdAt: true }, orderBy: { createdAt: "desc" } }) : [],
+    ]);
+  } catch (err) {
+    console.warn("LeadPage: secondary queries error:", err);
+  }
+
+  if (users.length === 0) {
+    users = [
+      { id: "demo-owner", name: "Owner (Demo)" },
+      { id: "demo-manager", name: "Manager (Demo)" },
+      { id: "demo-sales", name: "Sales (Demo)" },
+    ];
+  }
   const payload = parseObject<Record<string, unknown>>(lead.payload);
   const utm = parseObject<Record<string, string>>(lead.utm);
   const sell = lead.sellRequests[0];
@@ -45,7 +93,7 @@ export default async function LeadPage({ params, searchParams }: PageProps<"/adm
 
   const timeline = [
     { at: lead.createdAt, text: `Lead received via ${lead.source ?? "website"}${lead.pageUrl ? ` (${lead.pageUrl})` : ""}` },
-    ...lead.notes.map((n) => ({ at: n.createdAt, text: `${n.user?.name ?? "Staff"}: ${n.note}`, note: true })),
+    ...lead.notes.map((n: { createdAt: Date; user: { name: string } | null; note: string }) => ({ at: n.createdAt, text: `${n.user?.name ?? "Staff"}: ${n.note}`, note: true })),
     ...audits.filter((a) => a.action !== "note").map((a) => ({ at: a.createdAt, text: `${a.user?.name ?? "System"} — ${a.action.replace(/[_:]/g, " ")}` })),
   ].sort((a, b) => b.at.getTime() - a.at.getTime());
 
@@ -142,7 +190,7 @@ export default async function LeadPage({ params, searchParams }: PageProps<"/adm
             <section className="card p-5">
               <h2 className="font-extrabold">Bookings</h2>
               <ul className="mt-3 space-y-2 text-sm">
-                {lead.bookings.map((b) => (
+                {lead.bookings.map((b: { id: string; kind: string; slot: Date | null; status: string; tokenAmount: number | null; paymentStatus: string | null }) => (
                   <li key={b.id} className="flex flex-wrap justify-between gap-2 rounded-lg bg-paper px-3 py-2">
                     <span className="font-semibold capitalize">{b.kind.replace(/_/g, " ")}</span>
                     <span>{b.slot ? when(b.slot) : "No slot"}</span>
