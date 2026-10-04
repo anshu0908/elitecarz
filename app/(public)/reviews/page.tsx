@@ -7,7 +7,7 @@ import { getPublicSettings } from "@/lib/settings";
 
 export const metadata: Metadata = {
   title: "Customer reviews",
-  description: "EliteCarz is rated 4.7 out of 5 from 118 Google reviews. Read what buyers and sellers say.",
+  description: "EliteCarz has a 4.7 review on Google. Read what buyers and sellers say.",
   alternates: { canonical: "/reviews" },
 };
 
@@ -35,7 +35,7 @@ export default async function ReviewsPage() {
                 <Star key={i} className={`size-5 ${i <= Math.round(b.googleRating) ? "fill-amber-400 text-amber-400" : "text-line-strong"}`} aria-hidden />
               ))}
             </p>
-            <p className="mt-2 text-sm text-muted">{b.googleReviewCount} reviews on Google</p>
+            <p className="mt-2 text-sm text-muted">4.7 review on Google</p>
             <a href={b.googleProfileUrl} target="_blank" rel="noopener" className="btn btn-outline mt-4 w-full">Read all on Google</a>
           </div>
           <h2 className="mt-8 text-sm font-bold uppercase tracking-wider text-muted">Mentioned most</h2>

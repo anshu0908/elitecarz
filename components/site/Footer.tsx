@@ -38,6 +38,7 @@ const COLUMNS = [
       { href: "/about", label: "About & how it works" },
       { href: "/reviews", label: "Reviews" },
       { href: "/contact", label: "Visit the showroom" },
+      { href: "/admin", label: "Staff Sign In (Demo)" },
     ],
   },
 ];
@@ -80,7 +81,7 @@ export function Footer({ settings }: { settings: PublicSettings }) {
             <li className="flex gap-2.5">
               <Star className="mt-0.5 size-4 shrink-0 fill-current text-amber-400" aria-hidden />
               <a href={b.googleProfileUrl} target="_blank" rel="noopener" className="hover:text-white">
-                {b.googleRating} on Google · {b.googleReviewCount} reviews
+                4.7★ review on Google
               </a>
             </li>
           </ul>

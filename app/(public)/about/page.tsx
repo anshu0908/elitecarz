@@ -33,7 +33,7 @@ export default async function AboutPage() {
             Every car is sold at one fixed price with RC transfer included. We&apos;d rather tell you about a scuff before you visit than have you find it at the showroom.
           </p>
           <p className="mt-4 text-sm font-semibold">
-            {b.googleRating}★ on Google · {b.googleReviewCount} reviews ·{" "}
+            4.7★ review on Google ·{" "}
             <Link href="/reviews" className="text-red hover:underline">read them</Link>
           </p>
         </div>

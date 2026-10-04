@@ -43,6 +43,26 @@
   to { transform: none; opacity: 1; }
 }
 
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes reveal-view {
+  from { opacity: 0.4; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 @layer base {
   html {
     -webkit-tap-highlight-color: transparent;
@@ -125,10 +145,66 @@
 
   .card { background: var(--color-card); border: 1px solid var(--color-line); border-radius: var(--radius-card); }
 
-  .scroll-rail { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(270px, 82%); gap: 16px; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 6px; scrollbar-width: thin; }
+  /* Smooth Motion & Micro-Animations */
+  .animate-fade-up {
+    animation: fade-up 550ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .animate-fade-in {
+    animation: fade-in 400ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .animate-scale-in {
+    animation: scale-in 450ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .delay-100 { animation-delay: 100ms; }
+  .delay-200 { animation-delay: 200ms; }
+  .delay-300 { animation-delay: 300ms; }
+  .delay-400 { animation-delay: 400ms; }
+
+  /* Hardware-accelerated card hover elevation with spring physics */
+  .card-smooth {
+    transition: transform 320ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 320ms cubic-bezier(0.16, 1, 0.3, 1), border-color 220ms ease;
+    will-change: transform;
+    backface-visibility: hidden;
+    transform: translateZ(0);
+  }
+  .card-smooth:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 16px 36px -12px rgba(0, 0, 0, 0.16);
+  }
+
+  /* Buttery smooth scroll-rail */
+  .scroll-rail {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(270px, 82%);
+    gap: 16px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 8px;
+    scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    overscroll-behavior-x: contain;
+  }
   .scroll-rail > * { scroll-snap-align: start; }
   @media (min-width: 640px) { .scroll-rail { grid-auto-columns: minmax(280px, 46%); } }
   @media (min-width: 1024px) { .scroll-rail { grid-auto-columns: calc((100% - 48px) / 4); } }
+
+  /* Native CSS Scroll-driven animations when supported */
+  @supports (animation-timeline: view()) {
+    .scroll-reveal {
+      animation: reveal-view linear both;
+      animation-timeline: view();
+      animation-range: entry 5% cover 25%;
+    }
+  }
+
+  /* Content visibility for 120fps scrolling on long pages */
+  .cv-auto {
+    content-visibility: auto;
+    contain-intrinsic-size: 1px 450px;
+  }
 
   .prose-ec h2 { font-size: 1.25rem; font-weight: 700; margin: 1.6rem 0 0.5rem; }
   .prose-ec p { margin: 0.6rem 0; line-height: 1.65; color: #2b2b2b; }

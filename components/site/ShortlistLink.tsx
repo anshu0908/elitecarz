@@ -8,12 +8,12 @@ export function ShortlistLink() {
   return (
     <Link
       href="/shortlist"
-      className="relative grid size-10 place-items-center rounded-lg text-white/80 hover:text-white"
+      className="relative grid size-9 shrink-0 place-items-center rounded-lg text-white/80 hover:text-white hover:bg-white/[0.06] transition-colors"
       aria-label={`Shortlist, ${ids.length} cars`}
     >
-      <Heart className="size-5" aria-hidden />
+      <Heart className="size-4.5" aria-hidden />
       {ids.length > 0 && (
-        <span className="num absolute right-0.5 top-0.5 grid min-w-[18px] place-items-center rounded-full bg-red px-1 text-[0.65rem] font-bold leading-[18px] text-white">
+        <span className="num absolute right-0 top-0 grid min-w-[16px] place-items-center rounded-full bg-red px-1 text-[0.65rem] font-bold leading-[16px] text-white">
           {ids.length}
         </span>
       )}

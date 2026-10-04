@@ -29,7 +29,7 @@ export function CarCard({ car, finance, priority = false }: { car: PublicCar; fi
   ];
 
   return (
-    <article className="group relative flex flex-col overflow-hidden rounded-[var(--radius-card)] border border-line bg-card shadow-[var(--shadow-card)] transition hover:-translate-y-0.5 hover:shadow-[var(--shadow-pop)]">
+    <article className="group card-smooth relative flex flex-col overflow-hidden rounded-[var(--radius-card)] border border-line bg-card shadow-[var(--shadow-card)] transform-gpu">
       <div className="relative aspect-[4/3] overflow-hidden bg-ink-3">
         {car.heroImage && (
           <Image
@@ -38,7 +38,7 @@ export function CarCard({ car, finance, priority = false }: { car: PublicCar; fi
             fill
             priority={priority}
             sizes="(min-width: 1280px) 300px, (min-width: 768px) 45vw, 92vw"
-            className={`object-cover transition duration-500 group-hover:scale-[1.03] ${sold ? "grayscale-[60%]" : ""}`}
+            className={`object-cover transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] will-change-transform group-hover:scale-105 ${sold ? "grayscale-[60%]" : ""}`}
           />
         )}
         <div className="absolute left-3 top-3 flex gap-1.5">

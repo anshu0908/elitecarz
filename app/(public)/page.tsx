@@ -43,22 +43,22 @@ export default async function HomePage() {
         )}
         <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,#0c0c0d_0%,rgba(12,12,13,0.92)_38%,rgba(12,12,13,0.35)_100%)]" />
         <div className="container-x pb-10 pt-10 md:pb-16 md:pt-24">
-          <p className="eyebrow">Naraina · New Delhi</p>
-          <h1 className="mt-3 max-w-3xl text-[2.05rem] font-extrabold leading-[1.02] sm:text-[2.6rem] md:text-[3.9rem]">
+          <p className="eyebrow animate-fade-up">Naraina · New Delhi</p>
+          <h1 className="mt-3 max-w-3xl text-[2.05rem] font-extrabold leading-[1.02] sm:text-[2.6rem] md:text-[3.9rem] animate-fade-up delay-100">
             One fixed price.
             <br />
             Every claim backed on the page.
           </h1>
-          <p className="mt-5 max-w-xl text-[1.05rem] text-white/80">
-            {available.length} hand-picked pre-owned cars, RC transfer included in the price. Come and see them at our Naraina showroom, open 11 am to 7 pm every day.
+          <p className="mt-5 max-w-xl text-[1.05rem] text-white/80 animate-fade-up delay-200">
+            Hand-picked pre-owned cars, RC transfer included in the price. Come and see them at our Naraina showroom, open 11 am to 7 pm every day.
           </p>
-          <div className="mt-8 max-w-5xl">
+          <div className="mt-8 max-w-5xl animate-fade-up delay-300">
             <CarFinder cars={cars.map(({ id, make, bodyType, transmission, priceInr, status, publishedAt }) => ({ id, make, bodyType, transmission, priceInr, status, publishedAt }))} />
           </div>
-          <p className="mt-4 flex items-center gap-2 text-sm text-white/75">
+          <p className="mt-4 flex items-center gap-2 text-sm text-white/75 animate-fade-up delay-400">
             <Star className="size-4 fill-amber-400 text-amber-400" aria-hidden />
             <a href={b.googleProfileUrl} target="_blank" rel="noopener" className="underline-offset-2 hover:underline">
-              <strong className="text-white">{b.googleRating}</strong> on Google from {b.googleReviewCount} reviews
+              <strong className="text-white">4.7</strong> review on Google
             </a>
           </p>
         </div>
@@ -72,7 +72,7 @@ export default async function HomePage() {
             { icon: FileCheck2, title: "RC transfer included", text: "Paperwork handled" },
             { icon: ClipboardCheck, title: "Inspection report", text: `${INSPECTION_POINT_COUNT}-point format, per car` },
             { icon: ShieldCheck, title: "Warranty listed", text: "Terms shown on each car" },
-            { icon: Star, title: `${b.googleRating}★ on Google`, text: `${b.googleReviewCount} reviews` },
+            { icon: Star, title: "4.7★ review", text: "On Google" },
           ].map(({ icon: Icon, title, text }) => (
             <li key={title} className="flex items-start gap-3">
               <Icon className="mt-0.5 size-5 shrink-0 text-red" aria-hidden />
@@ -91,13 +91,13 @@ export default async function HomePage() {
         <Rail id="auto-suv" eyebrow="Most asked for" title="Automatic SUVs" href="/cars?body=SUV,Compact%20SUV&trans=Automatic" cars={autoSuvs} finance={settings.finance} />
 
         {/* SHOP BY */}
-        <section aria-labelledby="shop-by">
+        <section aria-labelledby="shop-by" className="scroll-reveal cv-auto">
           <SectionHeading id="shop-by" eyebrow="Browse" title="Shop by type or brand" />
           <div className="grid gap-6 md:grid-cols-2">
             <ul className="grid grid-cols-2 gap-3">
               {Object.entries(bodyCounts).map(([body, n]) => (
                 <li key={body}>
-                  <Link href={`/cars?body=${encodeURIComponent(body)}`} className="card flex items-center justify-between p-4 font-semibold transition hover:border-ink">
+                  <Link href={`/cars?body=${encodeURIComponent(body)}`} className="card card-smooth flex items-center justify-between p-4 font-semibold transition hover:border-ink">
                     {body}
                     <span className="num text-sm text-muted">{n}</span>
                   </Link>
@@ -109,7 +109,7 @@ export default async function HomePage() {
                 .sort((a, b) => b[1] - a[1])
                 .map(([make, n]) => (
                   <li key={make}>
-                    <Link href={`/used-cars/${make.toLowerCase().replace(/\s+/g, "-")}`} className="inline-flex items-center gap-2 rounded-full border border-line-strong bg-card px-4 py-2 text-sm font-semibold transition hover:border-ink">
+                    <Link href={`/used-cars/${make.toLowerCase().replace(/\s+/g, "-")}`} className="card-smooth inline-flex items-center gap-2 rounded-full border border-line-strong bg-card px-4 py-2 text-sm font-semibold transition hover:border-ink">
                       {make} <span className="num text-muted">{n}</span>
                     </Link>
                   </li>
@@ -119,7 +119,7 @@ export default async function HomePage() {
         </section>
 
         {/* HOW IT WORKS */}
-        <section aria-labelledby="how" className="dark-surface -mx-4 rounded-none bg-ink px-4 py-12 text-white md:mx-0 md:rounded-3xl md:px-10">
+        <section aria-labelledby="how" className="dark-surface scroll-reveal cv-auto -mx-4 rounded-none bg-ink px-4 py-12 text-white md:mx-0 md:rounded-3xl md:px-10">
           <SectionHeading id="how" eyebrow="How buying works" title="Four steps, no surprises" />
           <ol className="grid gap-6 md:grid-cols-4">
             {[
@@ -140,7 +140,7 @@ export default async function HomePage() {
 
         {/* PROOF */}
         {hector && hectorBreakup && (
-          <section aria-labelledby="proof">
+          <section aria-labelledby="proof" className="scroll-reveal cv-auto">
             <SectionHeading
               id="proof"
               eyebrow="Proof, not slogans"
@@ -148,7 +148,7 @@ export default async function HomePage() {
               intro={<>Taken from a real listing — the {hector.title}.</>}
             />
             <div className="grid gap-5 md:grid-cols-3">
-              <div className="card p-5">
+              <div className="card card-smooth p-5">
                 <h3 className="font-bold" style={{ fontStretch: "100%" }}>The price breakup</h3>
                 <dl className="num mt-3 space-y-2 text-sm">
                   <div className="flex justify-between"><dt className="text-muted">Car price</dt><dd className="font-semibold">{formatInr(hectorBreakup.carPrice)}</dd></div>
@@ -157,14 +157,14 @@ export default async function HomePage() {
                   <div className="flex justify-between border-t border-line pt-2 text-base"><dt className="font-bold">You pay</dt><dd className="font-bold">{formatInr(hectorBreakup.total)}</dd></div>
                 </dl>
               </div>
-              <div className="card p-5">
+              <div className="card card-smooth p-5">
                 <h3 className="font-bold" style={{ fontStretch: "100%" }}>The inspection report</h3>
                 <p className="mt-2 text-sm text-muted">Every section, every item, marked pass, minor or fail — with notes on anything that isn&apos;t perfect.</p>
                 <Link href={`/cars/${hector.slug}#inspection`} className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-red hover:underline">
                   See the sample report <ArrowRight className="size-4" aria-hidden />
                 </Link>
               </div>
-              <div className="card p-5">
+              <div className="card card-smooth p-5">
                 <h3 className="font-bold" style={{ fontStretch: "100%" }}>Known issues, disclosed</h3>
                 <p className="mt-2 text-sm text-muted">If a car has a scuff, a worn tyre or a repaint, it&apos;s written on the listing before you visit — not discovered at the showroom.</p>
                 <Link href={`/cars/${hector.slug}#disclosures`} className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-red hover:underline">
@@ -176,14 +176,14 @@ export default async function HomePage() {
         )}
 
         {/* SELL + FINANCE */}
-        <section className="grid gap-6 lg:grid-cols-2" aria-label="Sell your car and finance">
-          <div className="card p-6 md:p-8">
+        <section className="scroll-reveal cv-auto grid gap-6 lg:grid-cols-2" aria-label="Sell your car and finance">
+          <div className="card card-smooth p-6 md:p-8">
             <p className="eyebrow">Sell or exchange</p>
             <h2 className="mt-2 text-[1.6rem] font-extrabold leading-tight">What&apos;s your car worth?</h2>
             <p className="mt-2 text-muted">Start with your registration number and phone. You&apos;ll get an indicative range in a minute, then a firm offer after a free inspection.</p>
             <SellMiniForm />
           </div>
-          <div className="card p-6 md:p-8">
+          <div className="card card-smooth p-6 md:p-8">
             <p className="eyebrow">Finance</p>
             <h2 className="mt-2 text-[1.6rem] font-extrabold leading-tight">Work out your EMI</h2>
             <p className="mb-5 mt-2 text-muted">Same calculator as on every car page. Change any number and see exactly how it&apos;s worked out.</p>
@@ -192,11 +192,11 @@ export default async function HomePage() {
         </section>
 
         {/* REVIEWS */}
-        <section aria-labelledby="reviews">
+        <section aria-labelledby="reviews" className="scroll-reveal cv-auto">
           <SectionHeading
             id="reviews"
             eyebrow="Reviews"
-            title={`${b.googleRating}★ from ${b.googleReviewCount} Google reviews`}
+            title="4.7★ review on Google"
             intro="What customers mention most: transparent dealing, a careful initial inspection, and quick answers."
             href="/reviews"
             hrefLabel="All reviews"
@@ -211,7 +211,7 @@ export default async function HomePage() {
         {sold.length > 0 && <Rail id="sold" eyebrow="Recently sold" title="Gone to new homes" cars={sold} finance={settings.finance} />}
 
         {/* SHOWROOM */}
-        <section aria-labelledby="visit" className="grid gap-6 overflow-hidden rounded-3xl border border-line bg-card md:grid-cols-2">
+        <section aria-labelledby="visit" className="scroll-reveal cv-auto grid gap-6 overflow-hidden rounded-3xl border border-line bg-card md:grid-cols-2">
           <div className="p-6 md:p-10">
             <p className="eyebrow">Visit</p>
             <h2 id="visit" className="mt-2 text-[1.6rem] font-extrabold leading-tight">The showroom on Ring Road, Naraina</h2>
@@ -239,7 +239,7 @@ export default async function HomePage() {
         </section>
 
         {/* FAQ */}
-        <section aria-labelledby="faq" className="mx-auto max-w-3xl">
+        <section aria-labelledby="faq" className="scroll-reveal cv-auto mx-auto max-w-3xl">
           <SectionHeading id="faq" eyebrow="Questions" title="Straight answers" />
           <FaqList faqs={faqs.slice(0, 6)} />
         </section>
@@ -270,7 +270,7 @@ function Rail({
 }) {
   if (!cars.length) return null;
   return (
-    <section aria-labelledby={id}>
+    <section aria-labelledby={id} className="scroll-reveal cv-auto">
       <SectionHeading id={id} eyebrow={eyebrow} title={title} href={href} hrefLabel={`See all ${cars.length}`} />
       <div className="scroll-rail -mx-4 px-4 md:mx-0 md:px-0" tabIndex={0} aria-label={`${title} — scroll for more`}>
         {cars.slice(0, 8).map((c, i) => (

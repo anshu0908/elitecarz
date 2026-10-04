@@ -8,7 +8,12 @@ export const metadata: Metadata = { title: { default: "Admin", template: "%s · 
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const user = await requirePageUser();
-  const newLeads = await db.lead.count({ where: { status: "new", type: { not: "whatsapp_click" } } });
+  let newLeads = 0;
+  try {
+    newLeads = await db.lead.count({ where: { status: "new", type: { not: "whatsapp_click" } } });
+  } catch {
+    newLeads = 0;
+  }
   return (
     <div className="min-h-dvh bg-paper lg:grid lg:grid-cols-[232px_1fr]">
       <AdminNav user={user} newLeads={newLeads} />

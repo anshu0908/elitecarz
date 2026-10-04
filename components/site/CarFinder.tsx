@@ -37,7 +37,7 @@ export function CarFinder({ cars }: { cars: FinderCar[] }) {
 
   return (
     <form
-      className="grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-white p-2.5 text-text shadow-[var(--shadow-pop)] lg:grid-cols-[repeat(4,minmax(0,1fr))_auto]"
+      className="grid grid-cols-2 gap-2 rounded-2xl border border-white/10 bg-white p-2.5 text-text shadow-[var(--shadow-pop)] transition-shadow duration-300 hover:shadow-[0_24px_60px_-15px_rgba(0,0,0,0.5)] lg:grid-cols-[repeat(4,minmax(0,1fr))_auto]"
       onSubmit={(e) => {
         e.preventDefault();
         track("filter_use", { location: "hero_finder", budget, body, make, trans });
@@ -48,9 +48,9 @@ export function CarFinder({ cars }: { cars: FinderCar[] }) {
       <Select label="Body type" value={body} onChange={setBody} options={bodies} placeholder="Any type" />
       <Select label="Brand" value={make} onChange={setMake} options={makes} placeholder="Any brand" />
       <Select label="Gearbox" value={trans} onChange={setTrans} options={["Automatic", "Manual"]} placeholder="Any gearbox" />
-      <button type="submit" className="btn btn-red col-span-2 h-full min-h-[52px] lg:col-span-1" disabled={count === 0}>
+      <button type="submit" className="btn btn-red col-span-2 h-full min-h-[52px] lg:col-span-1 transition-all duration-200 hover:shadow-lg hover:shadow-red/30 active:scale-[0.99]">
         <Search className="size-[18px]" aria-hidden />
-        <span className="num">{count === 0 ? "No matches" : `Show ${count} car${count === 1 ? "" : "s"}`}</span>
+        <span>Search cars</span>
       </button>
     </form>
   );

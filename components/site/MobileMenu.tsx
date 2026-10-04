@@ -33,13 +33,13 @@ export function MobileMenu({ nav, phone }: { nav: { href: string; label: string 
     <div className="lg:hidden">
       <button
         type="button"
-        className="grid size-10 place-items-center rounded-lg text-white"
+        className="grid size-9 shrink-0 place-items-center rounded-lg text-white hover:bg-white/[0.06] transition-colors"
         aria-expanded={open}
         aria-controls="mobile-menu"
         aria-label={open ? "Close menu" : "Open menu"}
         onClick={() => setOpen((o) => !o)}
       >
-        {open ? <X className="size-6" aria-hidden /> : <Menu className="size-6" aria-hidden />}
+        {open ? <X className="size-5" aria-hidden /> : <Menu className="size-5" aria-hidden />}
       </button>
       {open && (
         <div id="mobile-menu" className="fixed inset-x-0 bottom-0 top-16 z-50 overflow-y-auto bg-ink px-4 pb-10 pt-2">

@@ -3,6 +3,7 @@ import { Footer } from "@/components/site/Footer";
 import { MobileBar } from "@/components/site/MobileBar";
 import { ConsentBanner } from "@/components/site/ConsentBanner";
 import { JsonLd } from "@/components/site/JsonLd";
+import { DemoBadge } from "@/components/site/DemoBadge";
 import { getPublicSettings } from "@/lib/settings";
 import { autoDealerJsonLd } from "@/lib/seo";
 
@@ -18,6 +19,7 @@ export default async function PublicLayout({ children }: { children: React.React
       <Footer settings={settings} />
       <MobileBar whatsapp={settings.business.whatsapp} phone={settings.business.phone} />
       <ConsentBanner ga4Id={settings.tracking.ga4Id} />
+      <DemoBadge />
       <JsonLd data={autoDealerJsonLd(settings)} />
     </>
   );

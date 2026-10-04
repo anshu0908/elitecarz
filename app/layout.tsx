@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: { default: "EliteCarz — Fixed-price used cars in Naraina, Delhi", template: "%s | EliteCarz Delhi" },
   description:
-    "Inspected pre-owned cars at one fixed price, RC transfer included. Showroom in Naraina, New Delhi. Rated 4.7★ by 118 Google reviewers.",
+    "Inspected pre-owned cars at one fixed price, RC transfer included. Showroom in Naraina, New Delhi. Rated 4.7★ on Google.",
   applicationName: "EliteCarz",
   formatDetection: { telephone: false },
 };

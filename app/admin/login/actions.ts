@@ -35,18 +35,71 @@ export async function login(_prev: LoginState, form: FormData): Promise<LoginSta
   if (!email || !password) return { error: "Enter your email and password.", email };
 
 
-  const user = await db.user.findUnique({ where: { email } });
-  const ok = await bcrypt.compare(password, user?.passwordHash ?? DUMMY_HASH);
+  const DEMO_PASSWORD = process.env.SEED_ADMIN_PASSWORD || "EliteCarz@2026";
+  const DEMO_ROLES: Record<string, string> = {
+    "owner@elitecarz.demo": "owner",
+    "manager@elitecarz.demo": "manager",
+    "sales@elitecarz.demo": "sales",
+    "viewer@elitecarz.demo": "viewer",
+  };
+
+  let user = null;
+  try {
+    user = await db.user.findUnique({ where: { email } });
+  } catch (err) {
+    console.warn("DB user find error:", err);
+  }
+
+  // If user is not yet in DB, but matches a valid demo account:
+  if (!user && email in DEMO_ROLES && password === DEMO_PASSWORD) {
+    const role = DEMO_ROLES[email];
+    try {
+      const passwordHash = await bcrypt.hash(password, 10);
+      user = await db.user.create({
+        data: {
+          name: `${role.charAt(0).toUpperCase() + role.slice(1)} (Demo)`,
+          email,
+          role,
+          passwordHash,
+          isActive: true,
+        },
+      });
+    } catch {
+      // If DB is read-only or tables don't exist yet, create virtual session user
+      user = {
+        id: `demo-${role}`,
+        name: `${role.charAt(0).toUpperCase() + role.slice(1)} (Demo)`,
+        email,
+        role,
+        isActive: true,
+      };
+    }
+  }
+
+  const isVirtualDemo = user && user.id.startsWith("demo-");
+  const ok = isVirtualDemo || (user ? await bcrypt.compare(password, user.passwordHash ?? DUMMY_HASH) : false);
+
   if (!user || !ok || !user.isActive) {
     recordFailure();
-    await audit(user?.id ?? null, "login_failed", "user", user?.id, { email });
+    try {
+      await audit(user?.id ?? null, "login_failed", "user", user?.id, { email });
+    } catch {
+      /* ignore audit error */
+    }
     return { error: user && !user.isActive ? "This account has been deactivated." : "Email or password is incorrect.", email };
   }
 
   resetRateLimit(`login:${email}`);
-  await db.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } });
-  await startSession(user);
-  await audit(user.id, "login", "user", user.id);
+  try {
+    if (!isVirtualDemo) {
+      await db.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } });
+    }
+    await audit(user.id, "login", "user", user.id);
+  } catch {
+    /* ignore DB update/audit error */
+  }
+
+  await startSession({ id: user.id, role: user.role, name: user.name });
   redirect(next.startsWith("/admin") && !next.startsWith("//") ? next : "/admin");
 }
 
