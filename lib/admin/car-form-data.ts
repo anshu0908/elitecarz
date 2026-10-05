@@ -5,8 +5,17 @@ import { EMPTY_CAR, type CarFormValues, type MasterData } from "@/lib/admin/car-
 import type { CarStatus } from "@/lib/constants";
 import type { InspectionResult } from "@/lib/inspection";
 
+type MakeWithModels = {
+  name: string;
+  models: {
+    name: string;
+    bodyType: string | null;
+    variants: { name: string }[];
+  }[];
+};
+
 export async function loadMasterData(): Promise<MasterData> {
-  let makes: any[] = [];
+  let makes: MakeWithModels[] = [];
   try {
     makes = await db.make.findMany({ include: { models: { include: { variants: { select: { name: true } } } } } });
   } catch (err) {

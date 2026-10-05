@@ -5,6 +5,7 @@ import type { Prisma } from "@/lib/generated/prisma/client";
 import { parseList } from "@/lib/json";
 import { PUBLIC_STATUSES } from "@/lib/constants";
 import type { PublicCar, PublicCarDetail } from "@/lib/types";
+import { getCatalogCarsFallback, getCatalogCarDetailFallback } from "@/lib/catalog-fallback";
 
 // The ONLY select used for public pages/APIs. Admin-only columns (purchasePriceInr,
 // refurbCostInr, notesInternal, regNumber, source, createdBy…) are deliberately absent.
@@ -103,8 +104,6 @@ export function toPublicCar(row: PublicCarRow): PublicCar {
     soldAt: row.soldAt?.toISOString() ?? null,
   };
 }
-
-import { getCatalogCarsFallback, getCatalogCarDetailFallback } from "@/lib/catalog-fallback";
 
 /** All cars visible on the public site (published, reserved, and recently sold). */
 export const getPublicCars = cache(async (): Promise<PublicCar[]> => {
